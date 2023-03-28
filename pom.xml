@@ -12,7 +12,7 @@
     <packaging>presto-plugin</packaging>
 
     <properties>
-        <air.main.basedir>${project.basedir}</air.main.basedir>
+        <air.main.basedir>${project.parent.basedir}</air.main.basedir>
     </properties>
 
     <dependencies>
