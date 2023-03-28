@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Resources;
+import com.vitessedata.kite.sdk.KiteConnection;
 
 import javax.inject.Inject;
 
@@ -52,6 +53,8 @@ public class ExampleClient
         requireNonNull(catalogCodec, "catalogCodec is null");
 
         schemas = Suppliers.memoize(schemasSupplier(catalogCodec, config.getMetadata()));
+
+        KiteConnection kite = new KiteConnection();
     }
 
     public Set<String> getSchemaNames()
