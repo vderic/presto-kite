@@ -49,6 +49,7 @@ public class KiteModule
         binder.bind(KitePagesStore.class).in(Scopes.SINGLETON);
         binder.bind(KitePageSourceProvider.class).in(Scopes.SINGLETON);
         binder.bind(KitePageSinkProvider.class).in(Scopes.SINGLETON);
+        binder.bind(KiteTableProperties.class).in(Scopes.SINGLETON);
         configBinder(binder).bindConfig(KiteConfig.class);
     }
 }

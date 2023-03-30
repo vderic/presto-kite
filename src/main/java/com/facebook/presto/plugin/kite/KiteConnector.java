@@ -13,35 +13,48 @@
  */
 package com.facebook.presto.plugin.kite;
 
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.spi.connector.Connector;
 import com.facebook.presto.spi.connector.ConnectorMetadata;
 import com.facebook.presto.spi.connector.ConnectorPageSinkProvider;
 import com.facebook.presto.spi.connector.ConnectorPageSourceProvider;
 import com.facebook.presto.spi.connector.ConnectorSplitManager;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
+import com.facebook.presto.spi.session.PropertyMetadata;
 import com.facebook.presto.spi.transaction.IsolationLevel;
+import com.google.common.collect.ImmutableList;
 
 import javax.inject.Inject;
+
+import java.util.List;
+
+import static java.util.Objects.requireNonNull;
 
 public class KiteConnector
         implements Connector
 {
+    private static final Logger log = Logger.get(KiteConnector.class);
+
     private final KiteMetadata metadata;
     private final KiteSplitManager splitManager;
     private final KitePageSourceProvider pageSourceProvider;
     private final KitePageSinkProvider pageSinkProvider;
+    private final KiteTableProperties kiteTableProperties;
+    private List<PropertyMetadata<?>> tableProperties;
 
     @Inject
     public KiteConnector(
             KiteMetadata metadata,
             KiteSplitManager splitManager,
             KitePageSourceProvider pageSourceProvider,
-            KitePageSinkProvider pageSinkProvider)
+            KitePageSinkProvider pageSinkProvider,
+            KiteTableProperties kiteTableProperties)
     {
-        this.metadata = metadata;
-        this.splitManager = splitManager;
-        this.pageSourceProvider = pageSourceProvider;
-        this.pageSinkProvider = pageSinkProvider;
+        this.metadata = requireNonNull(metadata, "metadata is null");
+        this.splitManager = requireNonNull(splitManager, "splitManager is null");
+        this.pageSourceProvider = requireNonNull(pageSourceProvider, "pageSourceProvider is null");
+        this.pageSinkProvider = requireNonNull(pageSinkProvider, "pageSinkProvider is null");
+        this.kiteTableProperties = requireNonNull(kiteTableProperties, "kiteTableProperties is null");
     }
 
     @Override
@@ -72,5 +85,14 @@ public class KiteConnector
     public ConnectorPageSinkProvider getPageSinkProvider()
     {
         return pageSinkProvider;
+    }
+
+    @Override
+    public List<PropertyMetadata<?>> getTableProperties()
+    {
+        if (tableProperties == null) {
+            tableProperties = ImmutableList.copyOf(kiteTableProperties.getTableProperties());
+        }
+        return tableProperties;
     }
 }

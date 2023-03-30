@@ -13,7 +13,6 @@
  */
 package com.facebook.presto.plugin.kite;
 
-import com.facebook.presto.common.type.TypeManager;
 import com.facebook.presto.spi.session.PropertyMetadata;
 import com.google.common.collect.ImmutableList;
 
@@ -35,7 +34,7 @@ public class KiteTableProperties
     private final List<PropertyMetadata<?>> tableProperties;
 
     @Inject
-    public KiteTableProperties(TypeManager typeManager, KiteConfig config)
+    public KiteTableProperties()
     {
         tableProperties = ImmutableList.of(
                 stringProperty(STORAGE_FORMAT_PROPERTY, "Kite storager format for the table", null, false),
