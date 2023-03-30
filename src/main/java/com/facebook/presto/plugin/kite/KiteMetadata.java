@@ -220,6 +220,7 @@ public class KiteMetadata
         Set<Node> nodes = nodeManager.getRequiredWorkerNodes();
         checkState(!nodes.isEmpty(), "No Kite nodes available");
 
+        KiteTableProperties.show(tableMetadata.getProperties());
         tableIds.put(tableMetadata.getTable(), nextId);
         KiteTableHandle table = new KiteTableHandle(
                 connectorId,

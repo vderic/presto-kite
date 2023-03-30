@@ -13,6 +13,7 @@
  */
 package com.facebook.presto.plugin.kite;
 
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.spi.session.PropertyMetadata;
 import com.google.common.collect.ImmutableList;
 
@@ -25,6 +26,8 @@ import static com.facebook.presto.spi.session.PropertyMetadata.stringProperty;
 
 public class KiteTableProperties
 {
+    private static final Logger log = Logger.get(KiteTableProperties.class);
+
     public static final String STORAGE_FORMAT_PROPERTY = "format";
     public static final String LOCATION_PROPERTY = "location";
     public static final String CSV_SEPARATOR = "csv_separator";
@@ -72,5 +75,12 @@ public class KiteTableProperties
     public static String getCsvEscape(Map<String, Object> tableProperties)
     {
         return (String) tableProperties.get(CSV_ESCAPE);
+    }
+
+    public static void show(Map<String, Object> tableProperties)
+    {
+        for (Map.Entry<String, Object> e : tableProperties.entrySet()) {
+            log.info(e.getKey() + ": " + e.getValue());
+        }
     }
 }
