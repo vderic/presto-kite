@@ -1,3 +1,3 @@
 #../mvnw package
-../mvnw package -DskipTests
+../mvnw clean package -DskipTests
 #../mvnw package -DskipTests -pl '!presto-docs'
