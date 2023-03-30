@@ -14,6 +14,7 @@
 package com.facebook.presto.plugin.kite;
 
 import com.facebook.airlift.log.Logger;
+import com.facebook.presto.common.predicate.Domain;
 import com.facebook.presto.common.predicate.TupleDomain;
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ColumnMetadata;
@@ -352,11 +353,45 @@ public class KiteMetadata
                 kiteTableHandle.getSchemaName(),
                 kiteTableHandle.getTableName());
 
+        if (desiredColumns.isPresent()) {
+            Set<ColumnHandle> colhnds = desiredColumns.get();
+            for (ColumnHandle col : colhnds) {
+                log.info(col.toString());
+            }
+        }
+        else {
+            log.info("desired column empty");
+        }
+
         List<KiteDataFragment> expectedFragments = ImmutableList.copyOf(
                 tableDataFragments.get(kiteTableHandle.getTableId()).values());
 
         KiteTableLayoutHandle layoutHandle = new KiteTableLayoutHandle(kiteTableHandle, expectedFragments);
-        log.info(constraint.getSummary().toString());
+
+        TupleDomain<ColumnHandle> predicates = constraint.getSummary();
+        List<KiteColumnHandle> schema = kiteTableHandle.getColumnHandles();
+        for (KiteColumnHandle c : schema) {
+            Domain domain = predicates.getDomains().get().get(c);
+            if (domain == null) {
+                continue;
+            }
+            if (domain.isNullAllowed()) {
+                continue;
+            }
+
+            String predicateString = null;
+            predicateString = domain.getValues().getValuesProcessor().transform(
+                ranges -> {
+                    return null;
+                },
+                discreteValues -> {
+                    return null;
+                },
+                allOrNone -> null);
+
+            log.info(c.toString() + " filter=" + domain.toString(session.getSqlFunctionProperties()));
+        }
+
         return ImmutableList.of(new ConnectorTableLayoutResult(getTableLayout(session, layoutHandle), constraint.getSummary()));
     }
 
