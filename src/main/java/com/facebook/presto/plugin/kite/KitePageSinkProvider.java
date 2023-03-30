@@ -61,12 +61,12 @@ public class KitePageSinkProvider
     {
         checkArgument(!pageSinkContext.isCommitRequired(), "Kite connector does not support page sink commit");
 
-        KiteOutputTableHandle memoryOutputTableHandle = (KiteOutputTableHandle) outputTableHandle;
-        KiteTableHandle tableHandle = memoryOutputTableHandle.getTable();
+        KiteOutputTableHandle kiteOutputTableHandle = (KiteOutputTableHandle) outputTableHandle;
+        KiteTableHandle tableHandle = kiteOutputTableHandle.getTable();
         long tableId = tableHandle.getTableId();
-        checkState(memoryOutputTableHandle.getActiveTableIds().contains(tableId));
+        checkState(kiteOutputTableHandle.getActiveTableIds().contains(tableId));
 
-        pagesStore.cleanUp(memoryOutputTableHandle.getActiveTableIds());
+        pagesStore.cleanUp(kiteOutputTableHandle.getActiveTableIds());
         pagesStore.initialize(tableId);
         return new KitePageSink(pagesStore, currentHostAddress, tableId);
     }
@@ -76,12 +76,12 @@ public class KitePageSinkProvider
     {
         checkArgument(!pageSinkContext.isCommitRequired(), "Kite connector does not support page sink commit");
 
-        KiteInsertTableHandle memoryInsertTableHandle = (KiteInsertTableHandle) insertTableHandle;
-        KiteTableHandle tableHandle = memoryInsertTableHandle.getTable();
+        KiteInsertTableHandle kiteInsertTableHandle = (KiteInsertTableHandle) insertTableHandle;
+        KiteTableHandle tableHandle = kiteInsertTableHandle.getTable();
         long tableId = tableHandle.getTableId();
-        checkState(memoryInsertTableHandle.getActiveTableIds().contains(tableId));
+        checkState(kiteInsertTableHandle.getActiveTableIds().contains(tableId));
 
-        pagesStore.cleanUp(memoryInsertTableHandle.getActiveTableIds());
+        pagesStore.cleanUp(kiteInsertTableHandle.getActiveTableIds());
         pagesStore.initialize(tableId);
         return new KitePageSink(pagesStore, currentHostAddress, tableId);
     }

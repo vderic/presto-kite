@@ -29,7 +29,7 @@ public class KiteConfig
         return splitsPerNode;
     }
 
-    @Config("memory.splits-per-node")
+    @Config("kite.splits-per-node")
     public KiteConfig setSplitsPerNode(int splitsPerNode)
     {
         this.splitsPerNode = splitsPerNode;
@@ -42,7 +42,7 @@ public class KiteConfig
         return maxDataPerNode;
     }
 
-    @Config("memory.max-data-per-node")
+    @Config("kite.max-data-per-node")
     public KiteConfig setMaxDataPerNode(DataSize maxDataPerNode)
     {
         this.maxDataPerNode = maxDataPerNode;

@@ -13,6 +13,7 @@
  */
 package com.facebook.presto.plugin.kite;
 
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.common.predicate.TupleDomain;
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ColumnMetadata;
@@ -72,6 +73,8 @@ import static java.util.stream.Collectors.toMap;
 public class KiteMetadata
         implements ConnectorMetadata
 {
+    private static final Logger log = Logger.get(KiteMetadata.class);
+
     public static final String SCHEMA_NAME = "default";
 
     private final NodeManager nodeManager;
@@ -136,8 +139,8 @@ public class KiteMetadata
     @Override
     public synchronized ConnectorTableMetadata getTableMetadata(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
-        KiteTableHandle memoryTableHandle = (KiteTableHandle) tableHandle;
-        return memoryTableHandle.toTableMetadata();
+        KiteTableHandle kiteTableHandle = (KiteTableHandle) tableHandle;
+        return kiteTableHandle.toTableMetadata();
     }
 
     @Override
@@ -152,16 +155,16 @@ public class KiteMetadata
     @Override
     public synchronized Map<String, ColumnHandle> getColumnHandles(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
-        KiteTableHandle memoryTableHandle = (KiteTableHandle) tableHandle;
-        return memoryTableHandle.getColumnHandles().stream()
+        KiteTableHandle kiteTableHandle = (KiteTableHandle) tableHandle;
+        return kiteTableHandle.getColumnHandles().stream()
                 .collect(toMap(KiteColumnHandle::getName, Function.identity()));
     }
 
     @Override
     public synchronized ColumnMetadata getColumnMetadata(ConnectorSession session, ConnectorTableHandle tableHandle, ColumnHandle columnHandle)
     {
-        KiteColumnHandle memoryColumnHandle = (KiteColumnHandle) columnHandle;
-        return memoryColumnHandle.toColumnMetadata();
+        KiteColumnHandle kiteColumnHandle = (KiteColumnHandle) columnHandle;
+        return kiteColumnHandle.toColumnMetadata();
     }
 
     @Override
@@ -251,26 +254,26 @@ public class KiteMetadata
     public synchronized Optional<ConnectorOutputMetadata> finishCreateTable(ConnectorSession session, ConnectorOutputTableHandle tableHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics)
     {
         requireNonNull(tableHandle, "tableHandle is null");
-        KiteOutputTableHandle memoryOutputHandle = (KiteOutputTableHandle) tableHandle;
+        KiteOutputTableHandle kiteOutputHandle = (KiteOutputTableHandle) tableHandle;
 
-        updateRowsOnHosts(memoryOutputHandle.getTable(), fragments);
+        updateRowsOnHosts(kiteOutputHandle.getTable(), fragments);
         return Optional.empty();
     }
 
     @Override
     public synchronized KiteInsertTableHandle beginInsert(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
-        KiteTableHandle memoryTableHandle = (KiteTableHandle) tableHandle;
-        return new KiteInsertTableHandle(memoryTableHandle, ImmutableSet.copyOf(tableIds.values()));
+        KiteTableHandle kiteTableHandle = (KiteTableHandle) tableHandle;
+        return new KiteInsertTableHandle(kiteTableHandle, ImmutableSet.copyOf(tableIds.values()));
     }
 
     @Override
     public synchronized Optional<ConnectorOutputMetadata> finishInsert(ConnectorSession session, ConnectorInsertTableHandle insertHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics)
     {
         requireNonNull(insertHandle, "insertHandle is null");
-        KiteInsertTableHandle memoryInsertHandle = (KiteInsertTableHandle) insertHandle;
+        KiteInsertTableHandle kiteInsertHandle = (KiteInsertTableHandle) insertHandle;
 
-        updateRowsOnHosts(memoryInsertHandle.getTable(), fragments);
+        updateRowsOnHosts(kiteInsertHandle.getTable(), fragments);
         return Optional.empty();
     }
 
@@ -327,8 +330,8 @@ public class KiteMetadata
         Map<HostAddress, KiteDataFragment> dataFragments = tableDataFragments.get(table.getTableId());
 
         for (Slice fragment : fragments) {
-            KiteDataFragment memoryDataFragment = KiteDataFragment.fromSlice(fragment);
-            dataFragments.merge(memoryDataFragment.getHostAddress(), memoryDataFragment, KiteDataFragment::merge);
+            KiteDataFragment kiteDataFragment = KiteDataFragment.fromSlice(fragment);
+            dataFragments.merge(kiteDataFragment.getHostAddress(), kiteDataFragment, KiteDataFragment::merge);
         }
     }
 
@@ -341,17 +344,18 @@ public class KiteMetadata
     {
         requireNonNull(handle, "handle is null");
         checkArgument(handle instanceof KiteTableHandle);
-        KiteTableHandle memoryTableHandle = (KiteTableHandle) handle;
+        KiteTableHandle kiteTableHandle = (KiteTableHandle) handle;
         checkState(
-                tableDataFragments.containsKey(memoryTableHandle.getTableId()),
+                tableDataFragments.containsKey(kiteTableHandle.getTableId()),
                 "Inconsistent state for the table [%s.%s]",
-                memoryTableHandle.getSchemaName(),
-                memoryTableHandle.getTableName());
+                kiteTableHandle.getSchemaName(),
+                kiteTableHandle.getTableName());
 
         List<KiteDataFragment> expectedFragments = ImmutableList.copyOf(
-                tableDataFragments.get(memoryTableHandle.getTableId()).values());
+                tableDataFragments.get(kiteTableHandle.getTableId()).values());
 
-        KiteTableLayoutHandle layoutHandle = new KiteTableLayoutHandle(memoryTableHandle, expectedFragments);
+        KiteTableLayoutHandle layoutHandle = new KiteTableLayoutHandle(kiteTableHandle, expectedFragments);
+        log.info(constraint.getSummary().toString());
         return ImmutableList.of(new ConnectorTableLayoutResult(getTableLayout(session, layoutHandle), constraint.getSummary()));
     }
 
