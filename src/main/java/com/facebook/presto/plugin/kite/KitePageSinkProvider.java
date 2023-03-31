@@ -13,6 +13,7 @@
  */
 package com.facebook.presto.plugin.kite;
 
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.common.Page;
 import com.facebook.presto.spi.ConnectorInsertTableHandle;
 import com.facebook.presto.spi.ConnectorOutputTableHandle;
@@ -40,6 +41,8 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 public class KitePageSinkProvider
         implements ConnectorPageSinkProvider
 {
+    private static final Logger log = Logger.get(KitePageSinkProvider.class);
+
     private final KitePagesStore pagesStore;
     private final HostAddress currentHostAddress;
 
@@ -59,6 +62,7 @@ public class KitePageSinkProvider
     @Override
     public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session, ConnectorOutputTableHandle outputTableHandle, PageSinkContext pageSinkContext)
     {
+        log.info("createPageSink output");
         checkArgument(!pageSinkContext.isCommitRequired(), "Kite connector does not support page sink commit");
 
         KiteOutputTableHandle kiteOutputTableHandle = (KiteOutputTableHandle) outputTableHandle;
@@ -74,6 +78,7 @@ public class KitePageSinkProvider
     @Override
     public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session, ConnectorInsertTableHandle insertTableHandle, PageSinkContext pageSinkContext)
     {
+        log.info("createPageSink insert");
         checkArgument(!pageSinkContext.isCommitRequired(), "Kite connector does not support page sink commit");
 
         KiteInsertTableHandle kiteInsertTableHandle = (KiteInsertTableHandle) insertTableHandle;

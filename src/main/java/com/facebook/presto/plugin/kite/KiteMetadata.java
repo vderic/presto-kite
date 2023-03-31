@@ -255,6 +255,7 @@ public class KiteMetadata
     @Override
     public synchronized Optional<ConnectorOutputMetadata> finishCreateTable(ConnectorSession session, ConnectorOutputTableHandle tableHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics)
     {
+        log.info("finish Create table");
         requireNonNull(tableHandle, "tableHandle is null");
         KiteOutputTableHandle kiteOutputHandle = (KiteOutputTableHandle) tableHandle;
 
@@ -265,6 +266,7 @@ public class KiteMetadata
     @Override
     public synchronized KiteInsertTableHandle beginInsert(ConnectorSession session, ConnectorTableHandle tableHandle)
     {
+        log.info("begin insert");
         KiteTableHandle kiteTableHandle = (KiteTableHandle) tableHandle;
         return new KiteInsertTableHandle(kiteTableHandle, ImmutableSet.copyOf(tableIds.values()));
     }
@@ -272,6 +274,7 @@ public class KiteMetadata
     @Override
     public synchronized Optional<ConnectorOutputMetadata> finishInsert(ConnectorSession session, ConnectorInsertTableHandle insertHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics)
     {
+        log.info("end insert");
         requireNonNull(insertHandle, "insertHandle is null");
         KiteInsertTableHandle kiteInsertHandle = (KiteInsertTableHandle) insertHandle;
 
@@ -333,6 +336,7 @@ public class KiteMetadata
 
         for (Slice fragment : fragments) {
             KiteDataFragment kiteDataFragment = KiteDataFragment.fromSlice(fragment);
+            log.info("update rows on hosts " + kiteDataFragment.getHostAddress().toString());
             dataFragments.merge(kiteDataFragment.getHostAddress(), kiteDataFragment, KiteDataFragment::merge);
         }
     }
@@ -344,6 +348,7 @@ public class KiteMetadata
             Constraint<ColumnHandle> constraint,
             Optional<Set<ColumnHandle>> desiredColumns)
     {
+        log.info("session " + session.toString());
         requireNonNull(handle, "handle is null");
         checkArgument(handle instanceof KiteTableHandle);
         KiteTableHandle kiteTableHandle = (KiteTableHandle) handle;
@@ -353,7 +358,10 @@ public class KiteMetadata
                 kiteTableHandle.getSchemaName(),
                 kiteTableHandle.getTableName());
 
+        Optional<List<ColumnHandle>> reqColumns = Optional.empty();
+
         if (desiredColumns.isPresent()) {
+            reqColumns = Optional.of(new ArrayList<>(desiredColumns.get()));
             Set<ColumnHandle> colhnds = desiredColumns.get();
             for (ColumnHandle col : colhnds) {
                 log.info(col.toString());
@@ -366,7 +374,8 @@ public class KiteMetadata
         List<KiteDataFragment> expectedFragments = ImmutableList.copyOf(
                 tableDataFragments.get(kiteTableHandle.getTableId()).values());
 
-        KiteTableLayoutHandle layoutHandle = new KiteTableLayoutHandle(kiteTableHandle, expectedFragments);
+        log.info("Data Fragment #=" + expectedFragments.size());
+        KiteTableLayoutHandle layoutHandle = new KiteTableLayoutHandle(kiteTableHandle, reqColumns, expectedFragments);
 
         TupleDomain<ColumnHandle> predicates = constraint.getSummary();
         List<KiteColumnHandle> schema = kiteTableHandle.getColumnHandles();
@@ -398,9 +407,10 @@ public class KiteMetadata
     @Override
     public synchronized ConnectorTableLayout getTableLayout(ConnectorSession session, ConnectorTableLayoutHandle handle)
     {
+        KiteTableLayoutHandle hdl = (KiteTableLayoutHandle) handle;
         return new ConnectorTableLayout(
                 handle,
-                Optional.empty(),
+                hdl.getDesiredColumns(),
                 TupleDomain.all(),
                 Optional.empty(),
                 Optional.empty(),

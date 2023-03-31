@@ -13,6 +13,7 @@
  */
 package com.facebook.presto.plugin.kite;
 
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.spi.ConnectorSession;
 import com.facebook.presto.spi.ConnectorSplit;
 import com.facebook.presto.spi.ConnectorSplitSource;
@@ -29,6 +30,8 @@ import java.util.List;
 public final class KiteSplitManager
         implements ConnectorSplitManager
 {
+    private static final Logger log = Logger.get(KiteSplitManager.class);
+
     private final int splitsPerNode;
 
     @Inject
@@ -48,6 +51,7 @@ public final class KiteSplitManager
 
         List<KiteDataFragment> dataFragments = layout.getDataFragments();
 
+        log.info("getSplits: #datafragment = " + dataFragments.size() + ", #splitsPerNode=" + splitsPerNode);
         ImmutableList.Builder<ConnectorSplit> splits = ImmutableList.builder();
         for (KiteDataFragment dataFragment : dataFragments) {
             for (int i = 0; i < splitsPerNode; i++) {

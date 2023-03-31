@@ -13,6 +13,7 @@
  */
 package com.facebook.presto.plugin.kite;
 
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.common.Page;
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ConnectorPageSource;
@@ -34,6 +35,8 @@ import static java.util.stream.Collectors.toList;
 public final class KitePageSourceProvider
         implements ConnectorPageSourceProvider
 {
+    private static final Logger log = Logger.get(KitePageSourceProvider.class);
+
     private final KitePagesStore pagesStore;
 
     @Inject
@@ -51,11 +54,16 @@ public final class KitePageSourceProvider
             List<ColumnHandle> columns,
             SplitContext splitContext)
     {
+        log.info("create Page Source");
         KiteSplit memorySplit = (KiteSplit) split;
         long tableId = memorySplit.getTableHandle().getTableId();
         int partNumber = memorySplit.getPartNumber();
         int totalParts = memorySplit.getTotalPartsPerWorker();
         long expectedRows = memorySplit.getExpectedRows();
+
+        for (ColumnHandle c : columns) {
+            log.info("PageSource: " + c.toString());
+        }
 
         List<Integer> columnIndexes = columns.stream()
                 .map(KiteColumnHandle.class::cast)
