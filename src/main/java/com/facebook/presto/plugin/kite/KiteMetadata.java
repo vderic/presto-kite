@@ -410,7 +410,7 @@ public class KiteMetadata
         KiteTableLayoutHandle hdl = (KiteTableLayoutHandle) handle;
         return new ConnectorTableLayout(
                 handle,
-                hdl.getDesiredColumns(),
+                Optional.empty(), //hdl.getDesiredColumns(),
                 TupleDomain.all(),
                 Optional.empty(),
                 Optional.empty(),

@@ -28,6 +28,14 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.requireNonNull;
 
+/*
+ * TODO: Split shall store the following:
+ * - fragid
+ * - fragcnt
+ * - predicate WHERE clauses
+ * - format and its properties csv_quote,...etc.
+ * - location kite url
+ */
 public class KiteSplit
         implements ConnectorSplit
 {
