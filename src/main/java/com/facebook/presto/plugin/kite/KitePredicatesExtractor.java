@@ -143,10 +143,6 @@ public class KitePredicatesExtractor
 
             clusteringColumnSql.add(predicateString);
             domainsBuilder.put(columnHandle, domain);
-            // Check for last clustering column should only be restricted by range condition
-            if (predicateString.contains(">") || predicateString.contains("<")) {
-                continue;
-            }
             currentClusteringColumn++;
         }
         List<String> clusteringColumnPredicates = clusteringColumnSql.build();
