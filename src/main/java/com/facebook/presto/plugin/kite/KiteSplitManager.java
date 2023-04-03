@@ -19,6 +19,8 @@ import com.facebook.presto.spi.ConnectorSplit;
 import com.facebook.presto.spi.ConnectorSplitSource;
 import com.facebook.presto.spi.ConnectorTableLayoutHandle;
 import com.facebook.presto.spi.FixedSplitSource;
+import com.facebook.presto.spi.Node;
+import com.facebook.presto.spi.NodeManager;
 import com.facebook.presto.spi.connector.ConnectorSplitManager;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 import com.google.common.collect.ImmutableList;
@@ -26,17 +28,20 @@ import com.google.common.collect.ImmutableList;
 import javax.inject.Inject;
 
 import java.util.List;
+import java.util.Set;
 
 public final class KiteSplitManager
         implements ConnectorSplitManager
 {
     private static final Logger log = Logger.get(KiteSplitManager.class);
 
+    private final NodeManager nodeManager;
     private final int splitsPerNode;
 
     @Inject
-    public KiteSplitManager(KiteConfig config)
+    public KiteSplitManager(NodeManager nodeManager, KiteConfig config)
     {
+        this.nodeManager = nodeManager;
         this.splitsPerNode = config.getSplitsPerNode();
     }
 
@@ -51,6 +56,11 @@ public final class KiteSplitManager
 
         List<KiteDataFragment> dataFragments = layout.getDataFragments();
 
+        log.info("KiteSplitManager: #worker" + nodeManager.getRequiredWorkerNodes().size());
+        Set<Node> nodes = nodeManager.getRequiredWorkerNodes();
+        for (Node node : nodes) {
+            log.info("NODE: " + node.toString());
+        }
         log.info("getSplits: #datafragment = " + dataFragments.size() + ", #splitsPerNode=" + splitsPerNode);
         ImmutableList.Builder<ConnectorSplit> splits = ImmutableList.builder();
         int fragid = 0;
