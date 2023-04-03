@@ -49,6 +49,6 @@ public class KiteRecordSet
     @Override
     public RecordCursor cursor()
     {
-        return null;
+        return new KiteRecordCursor(columnHandles);
     }
 }

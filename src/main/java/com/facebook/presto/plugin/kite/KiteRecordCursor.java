@@ -13,6 +13,7 @@
  */
 package com.facebook.presto.plugin.kite;
 
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.common.type.Type;
 import com.facebook.presto.spi.RecordCursor;
 import io.airlift.slice.Slice;
@@ -29,6 +30,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class KiteRecordCursor
         implements RecordCursor
 {
+    private static final Logger log = Logger.get(KiteRecordCursor.class);
+
     private final List<KiteColumnHandle> columnHandles;
 
     public KiteRecordCursor(List<KiteColumnHandle> columnHandles)
@@ -58,6 +61,7 @@ public class KiteRecordCursor
     @Override
     public boolean advanceNextPosition()
     {
+        log.info("advanceNextPosition FALSE");
         return false;
     }
 
