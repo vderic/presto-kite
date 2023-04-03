@@ -16,6 +16,7 @@ package com.facebook.presto.plugin.kite;
 import com.facebook.airlift.log.Logger;
 import com.facebook.presto.common.type.Type;
 import com.facebook.presto.spi.RecordCursor;
+import com.vitessedata.kite.sdk.KiteConnection;
 import io.airlift.slice.Slice;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public class KiteRecordCursor
     public KiteRecordCursor(List<KiteColumnHandle> columnHandles)
     {
         this.columnHandles = columnHandles;
+        KiteConnection kite = new KiteConnection();
     }
 
     @Override
