@@ -371,11 +371,18 @@ public class KiteMetadata
             log.info("desired column empty");
         }
 
+        KitePredicatesExtractor extractor = new KitePredicatesExtractor(kiteTableHandle.getColumnHandles(), constraint.getSummary());
+
+        TupleDomain<ColumnHandle> unenforcedConstraints = extractor.getUnenforcedConstraints();
+        String whereClause = extractor.getClusteringKeyPredicates();
+
+        log.info("PREDICATE... " + whereClause);
+
         List<KiteDataFragment> expectedFragments = ImmutableList.copyOf(
                 tableDataFragments.get(kiteTableHandle.getTableId()).values());
 
         log.info("Data Fragment #=" + expectedFragments.size());
-        KiteTableLayoutHandle layoutHandle = new KiteTableLayoutHandle(kiteTableHandle, reqColumns, expectedFragments);
+        KiteTableLayoutHandle layoutHandle = new KiteTableLayoutHandle(kiteTableHandle, whereClause, expectedFragments);
 
         TupleDomain<ColumnHandle> predicates = constraint.getSummary();
         List<KiteColumnHandle> schema = kiteTableHandle.getColumnHandles();
@@ -401,7 +408,7 @@ public class KiteMetadata
             log.info(c.toString() + " filter=" + domain.toString(session.getSqlFunctionProperties()));
         }
 
-        return ImmutableList.of(new ConnectorTableLayoutResult(getTableLayout(session, layoutHandle), constraint.getSummary()));
+        return ImmutableList.of(new ConnectorTableLayoutResult(getTableLayout(session, layoutHandle), unenforcedConstraints));
     }
 
     @Override

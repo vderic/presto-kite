@@ -13,13 +13,11 @@
  */
 package com.facebook.presto.plugin.kite;
 
-import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ConnectorTableLayoutHandle;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
@@ -27,17 +25,17 @@ public class KiteTableLayoutHandle
         implements ConnectorTableLayoutHandle
 {
     private final KiteTableHandle table;
-    private final Optional<List<ColumnHandle>> desiredColumns;
+    private final String whereClause;
     private final List<KiteDataFragment> dataFragments;
 
     @JsonCreator
     public KiteTableLayoutHandle(
             @JsonProperty("table") KiteTableHandle table,
-            @JsonProperty("desiredColumns") Optional<List<ColumnHandle>> desiredColumns,
+            @JsonProperty("whereClause") String whereClause,
             @JsonProperty("dataFragments") List<KiteDataFragment> dataFragments)
     {
         this.table = requireNonNull(table, "table is null");
-        this.desiredColumns = requireNonNull(desiredColumns, "desireColumns is null");
+        this.whereClause = requireNonNull(whereClause, "whereClause is null");
         this.dataFragments = requireNonNull(dataFragments, "dataFragments is null");
     }
 
@@ -54,9 +52,9 @@ public class KiteTableLayoutHandle
     }
 
     @JsonProperty
-    public Optional<List<ColumnHandle>> getDesiredColumns()
+    public String getWhereClause()
     {
-        return desiredColumns;
+        return whereClause;
     }
 
     public String getConnectorId()

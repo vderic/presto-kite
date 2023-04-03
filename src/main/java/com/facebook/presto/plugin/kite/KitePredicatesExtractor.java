@@ -81,6 +81,7 @@ public class KitePredicatesExtractor
                         List<String> rangeConjuncts = new ArrayList<>();
                         String predicate = null;
 
+                        // TODO: check NOT EQUALS.  presto gives (< and >) instead of !=
                         for (Range range : ranges.getOrderedRanges()) {
                             if (range.isAll()) {
                                 return null;
