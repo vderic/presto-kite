@@ -18,8 +18,10 @@ import com.facebook.presto.spi.ConnectorTableMetadata;
 import com.facebook.presto.spi.SchemaTableName;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -34,6 +36,7 @@ public final class KiteTableHandle
     private final String tableName;
     private final Long tableId;
     private final List<KiteColumnHandle> columnHandles;
+    private final Map<String, Object> properties;
 
     public KiteTableHandle(
             String connectorId,
@@ -44,7 +47,8 @@ public final class KiteTableHandle
                 tableMetadata.getTable().getSchemaName(),
                 tableMetadata.getTable().getTableName(),
                 tableId,
-                KiteColumnHandle.extractColumnHandles(tableMetadata.getColumns()));
+                KiteColumnHandle.extractColumnHandles(tableMetadata.getColumns()),
+                ImmutableMap.copyOf(tableMetadata.getProperties()));
     }
 
     @JsonCreator
@@ -53,13 +57,15 @@ public final class KiteTableHandle
             @JsonProperty("schemaName") String schemaName,
             @JsonProperty("tableName") String tableName,
             @JsonProperty("tableId") Long tableId,
-            @JsonProperty("columnHandles") List<KiteColumnHandle> columnHandles)
+            @JsonProperty("columnHandles") List<KiteColumnHandle> columnHandles,
+            @JsonProperty("properties") Map<String, Object> properties)
     {
         this.connectorId = requireNonNull(connectorId, "connectorId is null");
         this.schemaName = requireNonNull(schemaName, "schemaName is null");
         this.tableName = requireNonNull(tableName, "tableName is null");
         this.tableId = requireNonNull(tableId, "tableId is null");
         this.columnHandles = requireNonNull(columnHandles, "columnHandles is null");
+        this.properties = requireNonNull(properties, "properties is null");
     }
 
     @JsonProperty
@@ -92,11 +98,18 @@ public final class KiteTableHandle
         return columnHandles;
     }
 
+    @JsonProperty
+    public Map<String, Object> getProperties()
+    {
+        return properties;
+    }
+
     public ConnectorTableMetadata toTableMetadata()
     {
         return new ConnectorTableMetadata(
                 toSchemaTableName(),
-                columnHandles.stream().map(KiteColumnHandle::toColumnMetadata).collect(toList()));
+                columnHandles.stream().map(KiteColumnHandle::toColumnMetadata).collect(toList()),
+                properties);
     }
 
     public SchemaTableName toSchemaTableName()
@@ -133,6 +146,7 @@ public final class KiteTableHandle
                 .add("tableName", tableName)
                 .add("tableId", tableId)
                 .add("columnHandles", columnHandles)
+                .add("properties", properties)
                 .toString();
     }
 }

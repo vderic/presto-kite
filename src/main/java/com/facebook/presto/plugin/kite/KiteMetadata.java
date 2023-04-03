@@ -58,6 +58,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 import static com.facebook.presto.spi.StandardErrorCode.ALREADY_EXISTS;
+import static com.facebook.presto.spi.StandardErrorCode.INVALID_TABLE_PROPERTY;
 import static com.facebook.presto.spi.StandardErrorCode.NOT_FOUND;
 import static com.facebook.presto.spi.StandardErrorCode.SCHEMA_NOT_EMPTY;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -198,7 +199,8 @@ public class KiteMetadata
                 newTableName.getSchemaName(),
                 newTableName.getTableName(),
                 oldTableHandle.getTableId(),
-                oldTableHandle.getColumnHandles());
+                oldTableHandle.getColumnHandles(),
+                oldTableHandle.getProperties());
         tableIds.remove(oldTableHandle.toSchemaTableName());
         tableIds.put(newTableName, oldTableHandle.getTableId());
         tables.remove(oldTableHandle.getTableId());
@@ -222,7 +224,15 @@ public class KiteMetadata
         checkState(!nodes.isEmpty(), "No Kite nodes available");
 
         // KITE Create Table Properties
+        Map<String, Object> properties = tableMetadata.getProperties();
+        String fileformat = requireNonNull((String) properties.get("format"), "format is null");
+        String location = requireNonNull((String) properties.get("location"), "location is null");
+        if (!location.startsWith("kite://")) {
+            throw new PrestoException(INVALID_TABLE_PROPERTY, format("Invalid location. kite://host:port/path"));
+        }
+
         KiteTableProperties.show(tableMetadata.getProperties());
+
         tableIds.put(tableMetadata.getTable(), nextId);
         KiteTableHandle table = new KiteTableHandle(
                 connectorId,
@@ -418,7 +428,7 @@ public class KiteMetadata
         KiteTableLayoutHandle hdl = (KiteTableLayoutHandle) handle;
         return new ConnectorTableLayout(
                 handle,
-                Optional.empty(), //hdl.getDesiredColumns(),
+                Optional.empty(),
                 TupleDomain.all(),
                 Optional.empty(),
                 Optional.empty(),

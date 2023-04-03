@@ -13,6 +13,7 @@
  */
 package com.facebook.presto.plugin.kite;
 
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.spi.ConnectorSplit;
 import com.facebook.presto.spi.HostAddress;
 import com.facebook.presto.spi.NodeProvider;
@@ -22,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.facebook.presto.spi.schedule.NodeSelectionStrategy.HARD_AFFINITY;
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -39,6 +41,8 @@ import static java.util.Objects.requireNonNull;
 public class KiteSplit
         implements ConnectorSplit
 {
+    private static final Logger log = Logger.get(KiteSplit.class);
+
     private final KiteTableHandle tableHandle;
     private final int fragId;
     private final int fragCnt;
@@ -73,6 +77,12 @@ public class KiteSplit
         this.whereClause = whereClause;
         this.address = requireNonNull(address, "address is null");
         this.expectedRows = expectedRows;
+
+        Map<String, Object> properties = tableHandle.getProperties();
+        String format = requireNonNull((String) properties.get("format"), "format is null");
+        String location = requireNonNull((String) properties.get("location"), "location is null");
+
+        log.info("format=" + format + ", location=" + location);
     }
 
     @JsonProperty

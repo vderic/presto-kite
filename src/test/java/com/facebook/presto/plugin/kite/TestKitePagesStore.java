@@ -24,6 +24,7 @@ import com.facebook.presto.spi.PageSinkContext;
 import com.facebook.presto.spi.PrestoException;
 import com.facebook.presto.testing.TestingConnectorSession;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import io.airlift.units.DataSize;
 import org.testng.annotations.BeforeMethod;
@@ -153,7 +154,8 @@ public class TestKitePagesStore
                         "schema",
                         format("table_%d", tableId),
                         tableId,
-                        ImmutableList.of()),
+                        ImmutableList.of(),
+                        ImmutableMap.of()),
                 ImmutableSet.copyOf(activeTableIds));
     }
 
@@ -165,7 +167,8 @@ public class TestKitePagesStore
                         "schema",
                         format("table_%d", tableId),
                         tableId,
-                        ImmutableList.of()),
+                        ImmutableList.of(),
+                        ImmutableMap.of()),
                 ImmutableSet.copyOf(activeTableIds));
     }
 
