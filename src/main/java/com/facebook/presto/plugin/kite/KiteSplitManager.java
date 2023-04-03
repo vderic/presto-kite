@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableList;
 
 import javax.inject.Inject;
 
-import java.util.List;
 import java.util.Set;
 
 public final class KiteSplitManager
@@ -54,21 +53,17 @@ public final class KiteSplitManager
     {
         KiteTableLayoutHandle layout = (KiteTableLayoutHandle) layoutHandle;
 
-        List<KiteDataFragment> dataFragments = layout.getDataFragments();
-
         log.info("KiteSplitManager: #worker" + nodeManager.getRequiredWorkerNodes().size());
         Set<Node> nodes = nodeManager.getRequiredWorkerNodes();
         for (Node node : nodes) {
             log.info("put this address to KiteSplit NODE: " + node.getHostAndPort());
         }
-        log.info("getSplits: #datafragment = " + dataFragments.size() + ", #splitsPerNode=" + splitsPerNode);
         ImmutableList.Builder<ConnectorSplit> splits = ImmutableList.builder();
         int fragid = 0;
         int fragcnt = nodes.size() * splitsPerNode;
         int j = 0;
         for (Node node : nodes) {
             log.info("fragment address = " + node.getHostAndPort());
-            KiteDataFragment dataFragment = dataFragments.get(j++);
             for (int i = 0; i < splitsPerNode; i++) {
                 splits.add(
                         new KiteSplit(
@@ -76,10 +71,7 @@ public final class KiteSplitManager
                                 fragid++,
                                 fragcnt,
                                 layout.getWhereClause(),
-                                node.getHostAndPort(),
-                                i,
-                                splitsPerNode,
-                                dataFragment.getRows()));
+                                node.getHostAndPort()));
             }
         }
         return new FixedSplitSource(splits.build());

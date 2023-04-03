@@ -17,8 +17,6 @@ import com.facebook.presto.spi.ConnectorTableLayoutHandle;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
-
 import static java.util.Objects.requireNonNull;
 
 public class KiteTableLayoutHandle
@@ -26,29 +24,20 @@ public class KiteTableLayoutHandle
 {
     private final KiteTableHandle table;
     private final String whereClause;
-    private final List<KiteDataFragment> dataFragments;
 
     @JsonCreator
     public KiteTableLayoutHandle(
             @JsonProperty("table") KiteTableHandle table,
-            @JsonProperty("whereClause") String whereClause,
-            @JsonProperty("dataFragments") List<KiteDataFragment> dataFragments)
+            @JsonProperty("whereClause") String whereClause)
     {
         this.table = requireNonNull(table, "table is null");
         this.whereClause = requireNonNull(whereClause, "whereClause is null");
-        this.dataFragments = requireNonNull(dataFragments, "dataFragments is null");
     }
 
     @JsonProperty
     public KiteTableHandle getTable()
     {
         return table;
-    }
-
-    @JsonProperty
-    public List<KiteDataFragment> getDataFragments()
-    {
-        return dataFragments;
     }
 
     @JsonProperty

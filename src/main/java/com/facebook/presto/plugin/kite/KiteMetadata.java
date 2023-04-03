@@ -18,7 +18,6 @@ import com.facebook.presto.common.predicate.Domain;
 import com.facebook.presto.common.predicate.TupleDomain;
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ColumnMetadata;
-import com.facebook.presto.spi.ConnectorInsertTableHandle;
 import com.facebook.presto.spi.ConnectorNewTableLayout;
 import com.facebook.presto.spi.ConnectorOutputTableHandle;
 import com.facebook.presto.spi.ConnectorSession;
@@ -29,7 +28,6 @@ import com.facebook.presto.spi.ConnectorTableLayoutResult;
 import com.facebook.presto.spi.ConnectorTableMetadata;
 import com.facebook.presto.spi.ConnectorViewDefinition;
 import com.facebook.presto.spi.Constraint;
-import com.facebook.presto.spi.HostAddress;
 import com.facebook.presto.spi.Node;
 import com.facebook.presto.spi.NodeManager;
 import com.facebook.presto.spi.PrestoException;
@@ -60,6 +58,7 @@ import java.util.function.Function;
 import static com.facebook.presto.spi.StandardErrorCode.ALREADY_EXISTS;
 import static com.facebook.presto.spi.StandardErrorCode.INVALID_TABLE_PROPERTY;
 import static com.facebook.presto.spi.StandardErrorCode.NOT_FOUND;
+import static com.facebook.presto.spi.StandardErrorCode.NO_NODES_AVAILABLE;
 import static com.facebook.presto.spi.StandardErrorCode.SCHEMA_NOT_EMPTY;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -85,7 +84,6 @@ public class KiteMetadata
     private final AtomicLong nextTableId = new AtomicLong();
     private final Map<SchemaTableName, Long> tableIds = new HashMap<>();
     private final Map<Long, KiteTableHandle> tables = new HashMap<>();
-    private final Map<Long, Map<HostAddress, KiteDataFragment>> tableDataFragments = new HashMap<>();
     private final Map<SchemaTableName, String> views = new HashMap<>();
 
     @Inject
@@ -184,7 +182,6 @@ public class KiteMetadata
         Long tableId = tableIds.remove(handle.toSchemaTableName());
         if (tableId != null) {
             tables.remove(tableId);
-            tableDataFragments.remove(tableId);
         }
     }
 
@@ -239,7 +236,6 @@ public class KiteMetadata
                 nextId,
                 tableMetadata);
         tables.put(table.getTableId(), table);
-        tableDataFragments.put(table.getTableId(), new HashMap<>());
 
         return new KiteOutputTableHandle(table, ImmutableSet.copyOf(tableIds.values()));
     }
@@ -270,26 +266,10 @@ public class KiteMetadata
         requireNonNull(tableHandle, "tableHandle is null");
         KiteOutputTableHandle kiteOutputHandle = (KiteOutputTableHandle) tableHandle;
 
-        updateRowsOnHosts(kiteOutputHandle.getTable(), fragments);
-        return Optional.empty();
-    }
-
-    @Override
-    public synchronized KiteInsertTableHandle beginInsert(ConnectorSession session, ConnectorTableHandle tableHandle)
-    {
-        log.info("begin insert");
-        KiteTableHandle kiteTableHandle = (KiteTableHandle) tableHandle;
-        return new KiteInsertTableHandle(kiteTableHandle, ImmutableSet.copyOf(tableIds.values()));
-    }
-
-    @Override
-    public synchronized Optional<ConnectorOutputMetadata> finishInsert(ConnectorSession session, ConnectorInsertTableHandle insertHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics)
-    {
-        log.info("end insert");
-        requireNonNull(insertHandle, "insertHandle is null");
-        KiteInsertTableHandle kiteInsertHandle = (KiteInsertTableHandle) insertHandle;
-
-        updateRowsOnHosts(kiteInsertHandle.getTable(), fragments);
+        if (fragments.size() != nodeManager.getRequiredWorkerNodes().size()) {
+            throw new PrestoException(NO_NODES_AVAILABLE, "fragment received not match with the worker nodes");
+        }
+        //updateRowsOnHosts(kiteOutputHandle.getTable(), fragments);
         return Optional.empty();
     }
 
@@ -336,6 +316,7 @@ public class KiteMetadata
                         entry -> new ConnectorViewDefinition(entry.getKey(), Optional.empty(), entry.getValue())));
     }
 
+    /*
     private void updateRowsOnHosts(KiteTableHandle table, Collection<Slice> fragments)
     {
         checkState(
@@ -351,6 +332,7 @@ public class KiteMetadata
             dataFragments.merge(kiteDataFragment.getHostAddress(), kiteDataFragment, KiteDataFragment::merge);
         }
     }
+    */
 
     @Override
     public synchronized List<ConnectorTableLayoutResult> getTableLayouts(
@@ -363,12 +345,6 @@ public class KiteMetadata
         requireNonNull(handle, "handle is null");
         checkArgument(handle instanceof KiteTableHandle);
         KiteTableHandle kiteTableHandle = (KiteTableHandle) handle;
-        checkState(
-                tableDataFragments.containsKey(kiteTableHandle.getTableId()),
-                "Inconsistent state for the table [%s.%s]",
-                kiteTableHandle.getSchemaName(),
-                kiteTableHandle.getTableName());
-
         Optional<List<ColumnHandle>> reqColumns = Optional.empty();
 
         if (desiredColumns.isPresent()) {
@@ -389,11 +365,7 @@ public class KiteMetadata
 
         log.info("PREDICATE... " + whereClause);
 
-        List<KiteDataFragment> expectedFragments = ImmutableList.copyOf(
-                tableDataFragments.get(kiteTableHandle.getTableId()).values());
-
-        log.info("Data Fragment #=" + expectedFragments.size());
-        KiteTableLayoutHandle layoutHandle = new KiteTableLayoutHandle(kiteTableHandle, whereClause, expectedFragments);
+        KiteTableLayoutHandle layoutHandle = new KiteTableLayoutHandle(kiteTableHandle, whereClause);
 
         TupleDomain<ColumnHandle> predicates = constraint.getSummary();
         List<KiteColumnHandle> schema = kiteTableHandle.getColumnHandles();

@@ -57,9 +57,6 @@ public final class KitePageSourceProvider
         log.info("create Page Source: split= " + split.toString());
         KiteSplit kiteSplit = (KiteSplit) split;
         long tableId = kiteSplit.getTableHandle().getTableId();
-        int partNumber = kiteSplit.getPartNumber();
-        int totalParts = kiteSplit.getTotalPartsPerWorker();
-        long expectedRows = kiteSplit.getExpectedRows();
         int fragid = kiteSplit.getFragId();
         int fragcnt = kiteSplit.getFragCnt();
         String whereClause = kiteSplit.getWhereClause();
@@ -73,10 +70,10 @@ public final class KitePageSourceProvider
                 .map(KiteColumnHandle::getColumnIndex).collect(toList());
         List<Page> pages = pagesStore.getPages(
                 tableId,
-                partNumber,
-                totalParts,
+                fragid,
+                fragcnt,
                 columnIndexes,
-                expectedRows);
+                0);
 
         return new FixedPageSource(pages);
     }

@@ -43,7 +43,6 @@ import static com.facebook.presto.spi.StandardErrorCode.ALREADY_EXISTS;
 import static com.facebook.presto.spi.StandardErrorCode.NOT_FOUND;
 import static com.facebook.presto.testing.TestingConnectorSession.SESSION;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.expectThrows;
 import static org.testng.Assert.fail;
@@ -110,30 +109,6 @@ public class TestKiteMetadata
     }
 
     @Test
-    public void testActiveTableIds()
-    {
-        assertNoTables();
-
-        SchemaTableName firstTableName = new SchemaTableName("default", "first_table");
-        metadata.createTable(SESSION, new ConnectorTableMetadata(firstTableName, ImmutableList.of(), ImmutableMap.of()), false);
-
-        KiteTableHandle firstTableHandle = (KiteTableHandle) metadata.getTableHandle(SESSION, firstTableName);
-        Long firstTableId = firstTableHandle.getTableId();
-
-        assertTrue(metadata.beginInsert(SESSION, firstTableHandle).getActiveTableIds().contains(firstTableId));
-
-        SchemaTableName secondTableName = new SchemaTableName("default", "second_table");
-        metadata.createTable(SESSION, new ConnectorTableMetadata(secondTableName, ImmutableList.of(), ImmutableMap.of()), false);
-
-        KiteTableHandle secondTableHandle = (KiteTableHandle) metadata.getTableHandle(SESSION, secondTableName);
-        Long secondTableId = secondTableHandle.getTableId();
-
-        assertNotEquals(firstTableId, secondTableId);
-        assertTrue(metadata.beginInsert(SESSION, secondTableHandle).getActiveTableIds().contains(firstTableId));
-        assertTrue(metadata.beginInsert(SESSION, secondTableHandle).getActiveTableIds().contains(secondTableId));
-    }
-
-    @Test
     public void testReadTableBeforeCreationCompleted()
     {
         assertNoTables();
@@ -154,7 +129,6 @@ public class TestKiteMetadata
         ConnectorTableLayout tableLayout = tableLayouts.get(0).getTableLayout();
         ConnectorTableLayoutHandle tableLayoutHandle = tableLayout.getHandle();
         assertTrue(tableLayoutHandle instanceof KiteTableLayoutHandle);
-        assertTrue(((KiteTableLayoutHandle) tableLayoutHandle).getDataFragments().isEmpty(), "Data fragments should be empty");
 
         metadata.finishCreateTable(SESSION, table, ImmutableList.of(), ImmutableList.of());
     }
