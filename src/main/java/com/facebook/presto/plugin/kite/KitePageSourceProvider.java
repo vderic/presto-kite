@@ -54,12 +54,15 @@ public final class KitePageSourceProvider
             List<ColumnHandle> columns,
             SplitContext splitContext)
     {
-        log.info("create Page Source");
-        KiteSplit memorySplit = (KiteSplit) split;
-        long tableId = memorySplit.getTableHandle().getTableId();
-        int partNumber = memorySplit.getPartNumber();
-        int totalParts = memorySplit.getTotalPartsPerWorker();
-        long expectedRows = memorySplit.getExpectedRows();
+        log.info("create Page Source: split= " + split.toString());
+        KiteSplit kiteSplit = (KiteSplit) split;
+        long tableId = kiteSplit.getTableHandle().getTableId();
+        int partNumber = kiteSplit.getPartNumber();
+        int totalParts = kiteSplit.getTotalPartsPerWorker();
+        long expectedRows = kiteSplit.getExpectedRows();
+        int fragid = kiteSplit.getFragId();
+        int fragcnt = kiteSplit.getFragCnt();
+        String whereClause = kiteSplit.getWhereClause();
 
         for (ColumnHandle c : columns) {
             log.info("PageSource: " + c.toString());
