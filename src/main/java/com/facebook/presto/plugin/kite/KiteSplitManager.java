@@ -64,9 +64,11 @@ public final class KiteSplitManager
         log.info("getSplits: #datafragment = " + dataFragments.size() + ", #splitsPerNode=" + splitsPerNode);
         ImmutableList.Builder<ConnectorSplit> splits = ImmutableList.builder();
         int fragid = 0;
-        int fragcnt = dataFragments.size() * splitsPerNode;
-        for (KiteDataFragment dataFragment : dataFragments) {
-            log.info("fragment address = " + dataFragment.getHostAddress());
+        int fragcnt = nodes.size() * splitsPerNode;
+        int j = 0;
+        for (Node node : nodes) {
+            log.info("fragment address = " + node.getHostAndPort());
+            KiteDataFragment dataFragment = dataFragments.get(j++);
             for (int i = 0; i < splitsPerNode; i++) {
                 splits.add(
                         new KiteSplit(
@@ -74,7 +76,7 @@ public final class KiteSplitManager
                                 fragid++,
                                 fragcnt,
                                 layout.getWhereClause(),
-                                dataFragment.getHostAddress(),
+                                node.getHostAndPort(),
                                 i,
                                 splitsPerNode,
                                 dataFragment.getRows()));
