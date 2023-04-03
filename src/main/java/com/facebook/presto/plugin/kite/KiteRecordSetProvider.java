@@ -20,6 +20,7 @@ import com.facebook.presto.spi.ConnectorSplit;
 import com.facebook.presto.spi.RecordSet;
 import com.facebook.presto.spi.connector.ConnectorRecordSetProvider;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
+import com.google.common.collect.ImmutableList;
 
 import javax.inject.Inject;
 
@@ -43,7 +44,11 @@ public class KiteRecordSetProvider
     @Override
     public RecordSet getRecordSet(ConnectorTransactionHandle transactionHandle, ConnectorSession session, ConnectorSplit split, List<? extends ColumnHandle> columns)
     {
-        log.info("KiteRecordSetProvider entered");
-        return null;
+        KiteSplit kitesplit = (KiteSplit) split;
+        ImmutableList.Builder<KiteColumnHandle> handles = ImmutableList.builder();
+        for (ColumnHandle handle : columns) {
+            handles.add((KiteColumnHandle) handle);
+        }
+        return new KiteRecordSet(kitesplit, handles.build());
     }
 }
