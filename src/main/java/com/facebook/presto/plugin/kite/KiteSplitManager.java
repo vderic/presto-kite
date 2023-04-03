@@ -59,13 +59,14 @@ public final class KiteSplitManager
         log.info("KiteSplitManager: #worker" + nodeManager.getRequiredWorkerNodes().size());
         Set<Node> nodes = nodeManager.getRequiredWorkerNodes();
         for (Node node : nodes) {
-            log.info("NODE: " + node.toString());
+            log.info("put this address to KiteSplit NODE: " + node.getHostAndPort());
         }
         log.info("getSplits: #datafragment = " + dataFragments.size() + ", #splitsPerNode=" + splitsPerNode);
         ImmutableList.Builder<ConnectorSplit> splits = ImmutableList.builder();
         int fragid = 0;
         int fragcnt = dataFragments.size() * splitsPerNode;
         for (KiteDataFragment dataFragment : dataFragments) {
+            log.info("fragment address = " + dataFragment.getHostAddress());
             for (int i = 0; i < splitsPerNode; i++) {
                 splits.add(
                         new KiteSplit(
