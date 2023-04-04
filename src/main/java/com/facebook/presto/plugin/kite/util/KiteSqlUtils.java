@@ -209,7 +209,9 @@ public final class KiteSqlUtils
         else if (format.equalsIgnoreCase("parquet")) {
             return new ParquetFileSpec();
         }
-        return null;
+        else {
+            throw new NotSupportedException("format not supported in Kite. " + format);
+        }
     }
 
     public static String getPreferredHost(String[] hosts, int fragid)
