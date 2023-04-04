@@ -58,7 +58,6 @@ import java.util.function.Function;
 import static com.facebook.presto.spi.StandardErrorCode.ALREADY_EXISTS;
 import static com.facebook.presto.spi.StandardErrorCode.INVALID_TABLE_PROPERTY;
 import static com.facebook.presto.spi.StandardErrorCode.NOT_FOUND;
-import static com.facebook.presto.spi.StandardErrorCode.NO_NODES_AVAILABLE;
 import static com.facebook.presto.spi.StandardErrorCode.SCHEMA_NOT_EMPTY;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -266,10 +265,11 @@ public class KiteMetadata
         requireNonNull(tableHandle, "tableHandle is null");
         KiteOutputTableHandle kiteOutputHandle = (KiteOutputTableHandle) tableHandle;
 
+        /*
         if (fragments.size() != nodeManager.getRequiredWorkerNodes().size()) {
             throw new PrestoException(NO_NODES_AVAILABLE, "fragment received not match with the worker nodes");
         }
-        //updateRowsOnHosts(kiteOutputHandle.getTable(), fragments);
+        */
         return Optional.empty();
     }
 

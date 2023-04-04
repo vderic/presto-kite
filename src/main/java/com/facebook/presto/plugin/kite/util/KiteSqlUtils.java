@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.facebook.presto.common.type.BigintType.BIGINT;
 import static com.facebook.presto.common.type.BooleanType.BOOLEAN;
@@ -163,7 +164,7 @@ public final class KiteSqlUtils
             int scale = dec.getScale();
             return "decimal:" + precision + ":" + scale;
         }
-        else if (type instanceof CharType) {
+        else if (type instanceof CharType || type instanceof VarcharType) {
             return "string:0:0";
         }
         else if (type.equals(VARCHAR)) {
@@ -197,7 +198,18 @@ public final class KiteSqlUtils
 
     public static String createSQL(List<KiteColumnHandle> columns, String path, String whereClause)
     {
-        return null;
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT ");
+        String colstr = columns.stream().map(c -> c.getName()).collect(Collectors.joining(", "));
+        sb.append(colstr);
+        sb.append(" FROM ");
+        sb.append(quoteIdentifier(path));
+        if (whereClause != null && whereClause.length() > 0) {
+            sb.append(" WHERE ");
+            sb.append(whereClause);
+        }
+
+        return sb.toString();
     }
 
     public static FileSpec createFileSpec(Map<String, Object> properties)

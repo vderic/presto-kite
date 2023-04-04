@@ -64,6 +64,8 @@ public class KiteRecordSet
         // create SQL
         String sql = KiteSqlUtils.createSQL(columnHandles, url.getPath(), whereClause);
 
+        log.info("SQL = " + sql);
+        log.info("SCHEMA = " + schema);
         kite = new KiteConnection().host(addr).schema(schema).fragment(fragid, fragcnt).sql(sql).format(filespec);
 
         this.columnHandles = requireNonNull(columnHandles, "column handles is null");

@@ -128,6 +128,10 @@ public class KiteRecordCursor
         if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long || value instanceof BigInteger) {
             return ((Number) value).longValue();
         }
+        else if (value instanceof BigDecimal) {
+            BigDecimal v = (BigDecimal) value;
+            return v.unscaledValue().longValue(); // return the unscale value. e.g. 0.110 (scale=3) => 110
+        }
         else {
             throw new IllegalStateException("Expected Long but " + values[field].getClass().getName());
         }
