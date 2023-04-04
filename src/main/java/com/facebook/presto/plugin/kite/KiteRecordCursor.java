@@ -15,16 +15,19 @@ package com.facebook.presto.plugin.kite;
 
 import com.facebook.airlift.log.Logger;
 import com.facebook.presto.common.type.Type;
+import com.facebook.presto.spi.PrestoException;
 import com.facebook.presto.spi.RecordCursor;
 import com.vitessedata.kite.sdk.KiteConnection;
 import io.airlift.slice.Slice;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.facebook.presto.common.type.BigintType.BIGINT;
 import static com.facebook.presto.common.type.BooleanType.BOOLEAN;
 import static com.facebook.presto.common.type.DoubleType.DOUBLE;
 import static com.facebook.presto.common.type.VarcharType.createUnboundedVarcharType;
+import static com.facebook.presto.spi.StandardErrorCode.REMOTE_HOST_GONE;
 import static com.google.common.base.Preconditions.checkArgument;
 //import static com.google.common.base.Preconditions.checkState;
 
@@ -34,11 +37,18 @@ public class KiteRecordCursor
     private static final Logger log = Logger.get(KiteRecordCursor.class);
 
     private final List<KiteColumnHandle> columnHandles;
+    private final KiteConnection kite;
 
-    public KiteRecordCursor(List<KiteColumnHandle> columnHandles)
+    public KiteRecordCursor(KiteConnection kite, List<KiteColumnHandle> columnHandles)
     {
         this.columnHandles = columnHandles;
-        KiteConnection kite = new KiteConnection();
+        this.kite = kite;
+        try {
+            this.kite.submit();
+        }
+        catch (IOException e) {
+            throw new PrestoException(REMOTE_HOST_GONE, e);
+        }
     }
 
     @Override

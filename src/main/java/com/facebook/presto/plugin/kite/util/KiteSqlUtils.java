@@ -15,10 +15,16 @@ package com.facebook.presto.plugin.kite.util;
 
 import com.facebook.presto.common.type.Type;
 import com.facebook.presto.common.type.VarcharType;
+import com.facebook.presto.plugin.kite.KiteColumnHandle;
+import com.vitessedata.kite.sdk.CsvFileSpec;
+import com.vitessedata.kite.sdk.FileSpec;
+import com.vitessedata.kite.sdk.ParquetFileSpec;
 import io.airlift.slice.Slice;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static java.util.Locale.ENGLISH;
@@ -96,5 +102,58 @@ public final class KiteSqlUtils
             return ((Slice) value).toStringUtf8();
         }
         return value.toString();
+    }
+
+    public static String createSchema(List<KiteColumnHandle> columns)
+    {
+        return null;
+    }
+
+    public static String createSQL(List<KiteColumnHandle> columns, String path, String whereClause)
+    {
+        return null;
+    }
+
+    public static FileSpec createFileSpec(Map<String, Object> properties)
+    {
+        String format = (String) properties.get("format");
+        if (format.equalsIgnoreCase("csv")) {
+            return new CsvFileSpec();
+        }
+        else if (format.equalsIgnoreCase("parquet")) {
+            return new ParquetFileSpec();
+        }
+        return null;
+    }
+
+    public static String getPreferredHost(String[] hosts, int fragid)
+    {
+        int idx = fragid % hosts.length;
+        return hosts[idx];
+    }
+
+    public static KiteURL toURL(String location)
+    {
+        return null;
+    }
+
+    public class KiteURL
+    {
+        private final String location;
+
+        public KiteURL(String location)
+        {
+            this.location = location;
+        }
+
+        public String getPath()
+        {
+            return null;
+        }
+
+        public String[] getHosts()
+        {
+            return new String[0];
+        }
     }
 }

@@ -8,7 +8,7 @@
         <version>0.281-SNAPSHOT</version>
     </parent>
 
-    <artifactId>kite</artifactId>
+    <artifactId>presto-kite</artifactId>
     <description>Presto - Kite Connector</description>
     <packaging>presto-plugin</packaging>
 
