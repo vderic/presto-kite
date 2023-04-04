@@ -13,6 +13,9 @@
  */
 package com.facebook.presto.plugin.kite.util;
 
+import com.facebook.presto.common.NotSupportedException;
+import com.facebook.presto.common.type.CharType;
+import com.facebook.presto.common.type.DecimalType;
 import com.facebook.presto.common.type.Type;
 import com.facebook.presto.common.type.VarcharType;
 import com.facebook.presto.plugin.kite.KiteColumnHandle;
@@ -29,9 +32,7 @@ import java.util.Set;
 
 import static com.facebook.presto.common.type.BigintType.BIGINT;
 import static com.facebook.presto.common.type.BooleanType.BOOLEAN;
-import static com.facebook.presto.common.type.CharType;
 import static com.facebook.presto.common.type.DateType.DATE;
-import static com.facebook.presto.common.type.DecimalType;
 import static com.facebook.presto.common.type.DoubleType.DOUBLE;
 import static com.facebook.presto.common.type.IntegerType.INTEGER;
 import static com.facebook.presto.common.type.RealType.REAL;
@@ -121,9 +122,77 @@ public final class KiteSqlUtils
         return value.toString();
     }
 
+    private static String getKiteType(Type type)
+    {
+        if (type.equals(BOOLEAN)) {
+            return "int8:0:0";
+        }
+        else if (type.equals(TINYINT)) {
+            return "int8:0:0";
+        }
+        else if (type.equals(SMALLINT)) {
+            return "int16:0:0";
+        }
+        else if (type.equals(INTEGER)) {
+            return "int32:0:0";
+        }
+        else if (type.equals(BIGINT)) {
+            return "int64:0:0";
+        }
+        else if (type.equals(REAL)) {
+            return "fp32:0:0";
+        }
+        else if (type.equals(DOUBLE)) {
+            return "fp64:0:0";
+        }
+        else if (type.equals(DATE)) {
+            return "date:0:0";
+        }
+        else if (type.equals(TIME) || type.equals(TIME_WITH_TIME_ZONE)) {
+            return "time:0:0";
+        }
+        else if (type.equals(TIMESTAMP) || type.equals(TIMESTAMP_WITH_TIME_ZONE)) {
+            return "timestamp:0:0";
+        }
+        else if (type.equals(TIMESTAMP_MICROSECONDS)) {
+            return "timestamp:0:0";
+        }
+        else if (type instanceof DecimalType) {
+            DecimalType dec = (DecimalType) type;
+            int precision = dec.getPrecision();
+            int scale = dec.getScale();
+            return "decimal:" + precision + ":" + scale;
+        }
+        else if (type instanceof CharType) {
+            return "string:0:0";
+        }
+        else if (type.equals(VARCHAR)) {
+            return "string:0:0";
+        }
+        else if (type.equals(VARBINARY)) {
+            return "bytea:0:0";
+        }
+        else {
+            throw new NotSupportedException("type not supported in Kite. " + type.getClass().getName());
+        }
+    }
+
     public static String createSchema(List<KiteColumnHandle> columns)
     {
-        return null;
+        StringBuilder sb = new StringBuilder();
+
+        for (KiteColumnHandle c : columns) {
+            String cname = c.getName();
+            Type type = c.getColumnType();
+            int precision = 0;
+            int scale = 0;
+            sb.append(cname);
+            sb.append(':');
+            sb.append(getKiteType(type));
+            sb.append('\n');
+        }
+
+        return sb.toString();
     }
 
     public static String createSQL(List<KiteColumnHandle> columns, String path, String whereClause)
@@ -149,28 +218,43 @@ public final class KiteSqlUtils
         return hosts[idx];
     }
 
-    public static KiteURL toURL(String location)
+    public static KiteSqlUtils.KiteURL toURL(String location)
     {
-        return null;
+        KiteSqlUtils.KiteURL url = new KiteSqlUtils.KiteURL(location);
+        return url;
     }
 
-    public class KiteURL
+    public static class KiteURL
     {
         private final String location;
+        private final String[] hosts;
+        private final String path;
 
         public KiteURL(String location)
         {
             this.location = location;
+            if (!location.startsWith("kite://")) {
+                throw new IllegalArgumentException("invalid location. " + location);
+            }
+
+            String url = location.substring(7);
+            String[] parts = url.split("/", 2);
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("invalid location. " + location);
+            }
+
+            hosts = parts[0].split(",");
+            path = parts[1];
         }
 
         public String getPath()
         {
-            return null;
+            return path;
         }
 
         public String[] getHosts()
         {
-            return new String[0];
+            return hosts;
         }
     }
 }
