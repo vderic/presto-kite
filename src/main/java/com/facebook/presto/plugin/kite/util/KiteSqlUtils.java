@@ -239,8 +239,7 @@ public final class KiteSqlUtils
                 throw new IllegalArgumentException("invalid location. " + location);
             }
 
-            String url = location.substring(7);
-            String[] parts = url.split("/", 2);
+            String[] parts = location.substring(7).split("/", 2);
             if (parts.length != 2) {
                 throw new IllegalArgumentException("invalid location. " + location);
             }
