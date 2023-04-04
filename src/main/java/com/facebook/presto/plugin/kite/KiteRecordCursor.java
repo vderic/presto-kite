@@ -18,16 +18,23 @@ import com.facebook.presto.common.type.Type;
 import com.facebook.presto.spi.PrestoException;
 import com.facebook.presto.spi.RecordCursor;
 import com.vitessedata.kite.sdk.KiteConnection;
+import com.vitessedata.xrg.format.XrgIterator;
 import io.airlift.slice.Slice;
+import io.airlift.slice.Slices;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 
+/*
 import static com.facebook.presto.common.type.BigintType.BIGINT;
-import static com.facebook.presto.common.type.BooleanType.BOOLEAN;
 import static com.facebook.presto.common.type.DoubleType.DOUBLE;
+*/
+import static com.facebook.presto.common.type.BooleanType.BOOLEAN;
 import static com.facebook.presto.common.type.VarcharType.createUnboundedVarcharType;
 import static com.facebook.presto.spi.StandardErrorCode.REMOTE_HOST_GONE;
+import static com.facebook.presto.spi.StandardErrorCode.REMOTE_TASK_ERROR;
 import static com.google.common.base.Preconditions.checkArgument;
 //import static com.google.common.base.Preconditions.checkState;
 
@@ -38,11 +45,17 @@ public class KiteRecordCursor
 
     private final List<KiteColumnHandle> columnHandles;
     private final KiteConnection kite;
+    private Object[] values;
+    private byte[] flags;
+    private int count;
 
     public KiteRecordCursor(KiteConnection kite, List<KiteColumnHandle> columnHandles)
     {
         this.columnHandles = columnHandles;
         this.kite = kite;
+        this.values = null;
+        this.flags = null;
+        this.count = 0;
         try {
             this.kite.submit();
         }
@@ -54,7 +67,7 @@ public class KiteRecordCursor
     @Override
     public long getCompletedBytes()
     {
-        return 0;
+        return count;
     }
 
     @Override
@@ -73,41 +86,76 @@ public class KiteRecordCursor
     @Override
     public boolean advanceNextPosition()
     {
-        log.info("advanceNextPosition FALSE");
-        return false;
+        try {
+            XrgIterator iter = kite.next();
+            if (iter == null) {
+                return false;
+            }
+
+            values = iter.getValues();
+            flags = iter.getFlags();
+            count++;
+        }
+        catch (IOException e) {
+            throw new PrestoException(REMOTE_TASK_ERROR, e);
+        }
+        return true;
     }
 
     private String getFieldValue(int field)
     {
-        return null;
+        Object value = values[field];
+        if (value instanceof String) {
+            return (String) values[field];
+        }
+        else {
+            throw new IllegalStateException("Expected Long but " + values[field].getClass().getName());
+        }
     }
 
     @Override
     public boolean getBoolean(int field)
     {
         checkFieldType(field, BOOLEAN);
-        return false;
+        checkArgument((values[field] instanceof Byte), "Expected Byte but %s", values[field].getClass().getName());
+        return (((Byte) values[field]).byteValue() != 0);
     }
 
     @Override
     public long getLong(int field)
     {
-        checkFieldType(field, BIGINT);
-        return 0;
+        Object value = values[field];
+        if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long || value instanceof BigInteger) {
+            return ((Number) value).longValue();
+        }
+        else {
+            throw new IllegalStateException("Expected Long but " + values[field].getClass().getName());
+        }
     }
 
     @Override
     public double getDouble(int field)
     {
-        checkFieldType(field, DOUBLE);
-        return 0;
+        Object value = values[field];
+        if (value instanceof Float || value instanceof Double || value instanceof BigDecimal) {
+            return ((Number) value).doubleValue();
+        }
+        else {
+            throw new IllegalStateException("Expected Double but " + values[field].getClass().getName());
+        }
     }
 
     @Override
     public Slice getSlice(int field)
     {
+        Object value = values[field];
         checkFieldType(field, createUnboundedVarcharType());
-        return null;
+        if (value instanceof byte[]) {
+            return Slices.wrappedBuffer((byte[]) values[field]);
+        }
+        else {
+            throw new IllegalStateException("Expected byte[] but " + values[field].getClass().getName());
+        }
     }
 
     @Override
@@ -120,7 +168,7 @@ public class KiteRecordCursor
     public boolean isNull(int field)
     {
         checkArgument(field < columnHandles.size(), "Invalid field index");
-        return false;
+        return (flags[field] != 0);
     }
 
     private void checkFieldType(int field, Type expected)
@@ -132,5 +180,10 @@ public class KiteRecordCursor
     @Override
     public void close()
     {
+        try {
+            kite.release();
+        }
+        catch (IOException e) {
+        }
     }
 }
