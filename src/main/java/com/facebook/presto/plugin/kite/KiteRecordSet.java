@@ -62,18 +62,26 @@ public class KiteRecordSet
         String addr = KiteSqlUtils.getPreferredHost(url.getHosts(), fragid);
 
         // create SQL
-        String sql = KiteSqlUtils.createSQL(columnHandles, url.getPath(), whereClause);
+        if (columnHandles.isEmpty()) {
+            ImmutableList.Builder<KiteColumnHandle> columns = ImmutableList.builder();
+            columns.add(fields.get(0));
+            this.columnHandles = columns.build();
+        }
+        else {
+            this.columnHandles = requireNonNull(columnHandles, "column handles is null");
+        }
+
+        ImmutableList.Builder<Type> types = ImmutableList.builder();
+        for (KiteColumnHandle column : this.columnHandles) {
+            types.add(column.getColumnType());
+        }
+        this.columnTypes = types.build();
+
+        String sql = KiteSqlUtils.createSQL(this.columnHandles, url.getPath(), whereClause);
 
         log.info("SQL = " + sql);
         log.info("SCHEMA = " + schema);
         kite = new KiteConnection().host(addr).schema(schema).fragment(fragid, fragcnt).sql(sql).format(filespec);
-
-        this.columnHandles = requireNonNull(columnHandles, "column handles is null");
-        ImmutableList.Builder<Type> types = ImmutableList.builder();
-        for (KiteColumnHandle column : columnHandles) {
-            types.add(column.getColumnType());
-        }
-        this.columnTypes = types.build();
     }
 
     @Override
