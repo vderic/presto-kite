@@ -272,6 +272,7 @@ public final class KiteSqlUtils
         return sb.toString();
     }
 
+    // TODO: get CSV options
     public static FileSpec createFileSpec(Map<String, Object> properties)
     {
         String format = (String) properties.get("format");
