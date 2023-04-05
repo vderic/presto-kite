@@ -32,7 +32,6 @@ import static com.facebook.presto.common.type.BigintType.BIGINT;
 import static com.facebook.presto.common.type.DoubleType.DOUBLE;
 */
 import static com.facebook.presto.common.type.BooleanType.BOOLEAN;
-import static com.facebook.presto.common.type.VarcharType.createUnboundedVarcharType;
 import static com.facebook.presto.spi.StandardErrorCode.REMOTE_HOST_GONE;
 import static com.facebook.presto.spi.StandardErrorCode.REMOTE_TASK_ERROR;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -125,12 +124,23 @@ public class KiteRecordCursor
     public long getLong(int field)
     {
         Object value = values[field];
-        if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long || value instanceof BigInteger) {
+        if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long) {
             return ((Number) value).longValue();
+        }
+        else if (value instanceof BigInteger) {
+            return ((BigInteger) value).longValueExact();
         }
         else if (value instanceof BigDecimal) {
             BigDecimal v = (BigDecimal) value;
-            return v.unscaledValue().longValue(); // return the unscale value. e.g. 0.110 (scale=3) => 110
+            return v.unscaledValue().longValueExact(); // return the unscale value. e.g. 0.110 (scale=3) => 110
+        }
+        else if (value instanceof Float) {
+            Float f = (Float) value;
+            return Float.floatToRawIntBits(f.floatValue());
+        }
+        else if (value instanceof Double) {
+            Double d = (Double) value;
+            return Double.doubleToRawLongBits(d.doubleValue());
         }
         else {
             throw new IllegalStateException("Expected Long but " + values[field].getClass().getName());
@@ -153,12 +163,14 @@ public class KiteRecordCursor
     public Slice getSlice(int field)
     {
         Object value = values[field];
-        checkFieldType(field, createUnboundedVarcharType());
         if (value instanceof byte[]) {
             return Slices.wrappedBuffer((byte[]) values[field]);
         }
+        else if (value instanceof String) {
+            return Slices.utf8Slice((String) value);
+        }
         else {
-            throw new IllegalStateException("Expected byte[] but " + values[field].getClass().getName());
+            throw new IllegalStateException("Slice: Expected byte[] or String but " + values[field].getClass().getName());
         }
     }
 
