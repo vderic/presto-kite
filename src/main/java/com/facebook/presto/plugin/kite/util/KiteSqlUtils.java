@@ -13,6 +13,7 @@
  */
 package com.facebook.presto.plugin.kite.util;
 
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.common.NotSupportedException;
 import com.facebook.presto.common.type.CharType;
 import com.facebook.presto.common.type.DecimalType;
@@ -24,6 +25,10 @@ import com.vitessedata.kite.sdk.FileSpec;
 import com.vitessedata.kite.sdk.ParquetFileSpec;
 import io.airlift.slice.Slice;
 
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -50,6 +55,8 @@ import static java.util.Locale.ENGLISH;
 
 public final class KiteSqlUtils
 {
+    private static final Logger log = Logger.get(KiteSqlUtils.class);
+
     private KiteSqlUtils()
     {
     }
@@ -107,7 +114,7 @@ public final class KiteSqlUtils
 
     public static String sqlValue(String value, Type type)
     {
-        if (type instanceof VarcharType) {
+        if (type instanceof VarcharType || type.equals(DATE) || type.equals(TIME) || type.equals(TIMESTAMP) || type.equals(TIMESTAMP_MICROSECONDS)) {
             return quoteStringLiteral(value);
         }
         else {
@@ -115,8 +122,54 @@ public final class KiteSqlUtils
         }
     }
 
-    public static String toSQLCompatibleString(Object value)
+    public static String toSQLCompatibleString(Object value, Type type)
     {
+        log.info("toSQLCompatiableString " + value.getClass().getName() + " = " + value.toString());
+        if (type.equals(DATE)) {
+            if (value instanceof Long) {
+                long ts = ((Long) value).longValue();
+                ts *= 24 * 3600000L;
+                Date date = new Date(ts);
+                log.info("date = " + date.toString());
+                return date.toString();
+            }
+            else {
+                throw new IllegalStateException("DateType but value is not Long." + value.getClass().getName());
+            }
+        }
+        else if (type.equals(TIMESTAMP) || type.equals(TIMESTAMP_MICROSECONDS)) {
+            if (value instanceof Long) {
+                long v = ((Long) value).longValue();
+                if (type.equals(TIMESTAMP_MICROSECONDS)) {
+                    v /= 1000;
+                }
+                Timestamp ts = new Timestamp(v);
+                return ts.toString();
+            }
+            else {
+                throw new IllegalStateException("TimestampType but value is not Long." + value.getClass().getName());
+            }
+        }
+        else if (type.equals(TIME)) {
+            if (value instanceof Long) {
+                Time tm = new Time(((Long) value).longValue());
+                return tm.toString();
+            }
+            else {
+                throw new IllegalStateException("TimeType but value is not Long." + value.getClass().getName());
+            }
+        }
+        else if (type instanceof DecimalType) {
+            DecimalType dect = (DecimalType) type;
+            if (value instanceof Long) {
+                BigDecimal dec = new BigDecimal(((Long) value).longValue()).movePointLeft(dect.getScale());
+                return dec.toString();
+            }
+            else {
+                throw new IllegalStateException("TimeType but value is not Long." + value.getClass().getName());
+            }
+        }
+
         if (value instanceof Slice) {
             return ((Slice) value).toStringUtf8();
         }

@@ -87,7 +87,7 @@ public class KitePredicatesExtractor
                                 return null;
                             }
                             if (range.isSingleValue()) {
-                                singleValues.add(KiteSqlUtils.sqlValue(toSQLCompatibleString(range.getSingleValue()),
+                                singleValues.add(KiteSqlUtils.sqlValue(toSQLCompatibleString(range.getSingleValue(), columnHandle.getColumnType()),
                                         columnHandle.getColumnType()));
                             }
                             else {
@@ -96,14 +96,14 @@ public class KitePredicatesExtractor
                                             "%s %s %s",
                                             KiteSqlUtils.validColumnName(columnHandle.getName()),
                                             range.isLowInclusive() ? ">=" : ">",
-                                            KiteSqlUtils.sqlValue(toSQLCompatibleString(range.getLowBoundedValue()), columnHandle.getColumnType())));
+                                            KiteSqlUtils.sqlValue(toSQLCompatibleString(range.getLowBoundedValue(), columnHandle.getColumnType()), columnHandle.getColumnType())));
                                 }
                                 if (!range.isHighUnbounded()) {
                                     rangeConjuncts.add(format(
                                             "%s %s %s",
                                             KiteSqlUtils.validColumnName(columnHandle.getName()),
                                             range.isHighInclusive() ? "<=" : "<",
-                                            KiteSqlUtils.sqlValue(toSQLCompatibleString(range.getHighBoundedValue()), columnHandle.getColumnType())));
+                                            KiteSqlUtils.sqlValue(toSQLCompatibleString(range.getHighBoundedValue(), columnHandle.getColumnType()), columnHandle.getColumnType())));
                                 }
                             }
                         }
@@ -128,7 +128,7 @@ public class KitePredicatesExtractor
                         if (discreteValues.isWhiteList()) {
                             ImmutableList.Builder<Object> discreteValuesList = ImmutableList.builder();
                             for (Object discreteValue : discreteValues.getValues()) {
-                                discreteValuesList.add(KiteSqlUtils.sqlValue(toSQLCompatibleString(discreteValue),
+                                discreteValuesList.add(KiteSqlUtils.sqlValue(toSQLCompatibleString(discreteValue, columnHandle.getColumnType()),
                                         columnHandle.getColumnType()));
                             }
                             String predicate = KiteSqlUtils.validColumnName(columnHandle.getName()) + " IN ("
