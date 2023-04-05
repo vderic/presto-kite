@@ -114,8 +114,17 @@ public final class KiteSqlUtils
 
     public static String sqlValue(String value, Type type)
     {
-        if (type instanceof VarcharType || type.equals(DATE) || type.equals(TIME) || type.equals(TIMESTAMP) || type.equals(TIMESTAMP_MICROSECONDS)) {
+        if (type instanceof VarcharType) {
             return quoteStringLiteral(value);
+        }
+        else if (type.equals(DATE)) {
+            return "DATE " + quoteStringLiteral(value);
+        }
+        else if (type.equals(TIME)) {
+            return "TIME " + quoteStringLiteral(value);
+        }
+        else if (type.equals(TIMESTAMP) || type.equals(TIMESTAMP_MICROSECONDS)) {
+            return "TIMESTAMP " + quoteStringLiteral(value);
         }
         else {
             return value;
