@@ -14,14 +14,12 @@
 package com.facebook.presto.plugin.kite;
 
 import com.facebook.airlift.configuration.Config;
-import io.airlift.units.DataSize;
 
 import javax.validation.constraints.NotNull;
 
 public class KiteConfig
 {
     private int splitsPerNode = Runtime.getRuntime().availableProcessors();
-    private DataSize maxDataPerNode = new DataSize(128, DataSize.Unit.MEGABYTE);
 
     @NotNull
     public int getSplitsPerNode()
@@ -33,19 +31,6 @@ public class KiteConfig
     public KiteConfig setSplitsPerNode(int splitsPerNode)
     {
         this.splitsPerNode = splitsPerNode;
-        return this;
-    }
-
-    @NotNull
-    public DataSize getMaxDataPerNode()
-    {
-        return maxDataPerNode;
-    }
-
-    @Config("kite.max-data-per-node")
-    public KiteConfig setMaxDataPerNode(DataSize maxDataPerNode)
-    {
-        this.maxDataPerNode = maxDataPerNode;
         return this;
     }
 }
