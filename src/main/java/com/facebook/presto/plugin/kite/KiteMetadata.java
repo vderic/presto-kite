@@ -226,8 +226,6 @@ public class KiteMetadata
             throw new PrestoException(INVALID_TABLE_PROPERTY, format("Invalid location. kite://host:port/path"));
         }
 
-        KiteTableProperties.show(tableMetadata.getProperties());
-
         tableIds.put(tableMetadata.getTable(), nextId);
         KiteTableHandle table = new KiteTableHandle(
                 connectorId,
