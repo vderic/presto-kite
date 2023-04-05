@@ -80,7 +80,6 @@ public class KiteRecordSet
         String sql = KiteSqlUtils.createSQL(this.columnHandles, url.getPath(), whereClause);
 
         log.info("SQL = " + sql);
-        log.info("SCHEMA = " + schema);
         kite = new KiteConnection().host(addr).schema(schema).fragment(fragid, fragcnt).sql(sql).format(filespec);
     }
 

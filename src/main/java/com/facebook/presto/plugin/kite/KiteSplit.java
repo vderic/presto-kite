@@ -69,8 +69,6 @@ public class KiteSplit
         Map<String, Object> properties = tableHandle.getProperties();
         String format = requireNonNull((String) properties.get("format"), "format is null");
         String location = requireNonNull((String) properties.get("location"), "location is null");
-
-        log.info("format=" + format + ", location=" + location);
     }
 
     @JsonProperty

@@ -53,17 +53,12 @@ public final class KiteSplitManager
     {
         KiteTableLayoutHandle layout = (KiteTableLayoutHandle) layoutHandle;
 
-        log.info("KiteSplitManager: #worker" + nodeManager.getRequiredWorkerNodes().size());
         Set<Node> nodes = nodeManager.getRequiredWorkerNodes();
-        for (Node node : nodes) {
-            log.info("put this address to KiteSplit NODE: " + node.getHostAndPort());
-        }
         ImmutableList.Builder<ConnectorSplit> splits = ImmutableList.builder();
         int fragid = 0;
         int fragcnt = nodes.size() * splitsPerNode;
         int j = 0;
         for (Node node : nodes) {
-            log.info("fragment address = " + node.getHostAndPort());
             for (int i = 0; i < splitsPerNode; i++) {
                 splits.add(
                         new KiteSplit(

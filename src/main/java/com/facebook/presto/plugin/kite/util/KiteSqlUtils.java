@@ -133,13 +133,11 @@ public final class KiteSqlUtils
 
     public static String toSQLCompatibleString(Object value, Type type)
     {
-        log.info("toSQLCompatiableString " + value.getClass().getName() + " = " + value.toString());
         if (type.equals(DATE)) {
             if (value instanceof Long) {
                 long ts = ((Long) value).longValue();
                 ts *= 24 * 3600000L;
                 Date date = new Date(ts);
-                log.info("date = " + date.toString());
                 return date.toString();
             }
             else {

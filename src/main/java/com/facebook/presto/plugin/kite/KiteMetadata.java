@@ -14,7 +14,6 @@
 package com.facebook.presto.plugin.kite;
 
 import com.facebook.airlift.log.Logger;
-import com.facebook.presto.common.predicate.Domain;
 import com.facebook.presto.common.predicate.TupleDomain;
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ColumnMetadata;
@@ -264,12 +263,6 @@ public class KiteMetadata
         log.info("finish Create table");
         requireNonNull(tableHandle, "tableHandle is null");
         KiteOutputTableHandle kiteOutputHandle = (KiteOutputTableHandle) tableHandle;
-
-        /*
-        if (fragments.size() != nodeManager.getRequiredWorkerNodes().size()) {
-            throw new PrestoException(NO_NODES_AVAILABLE, "fragment received not match with the worker nodes");
-        }
-        */
         return Optional.empty();
     }
 
@@ -316,24 +309,6 @@ public class KiteMetadata
                         entry -> new ConnectorViewDefinition(entry.getKey(), Optional.empty(), entry.getValue())));
     }
 
-    /*
-    private void updateRowsOnHosts(KiteTableHandle table, Collection<Slice> fragments)
-    {
-        checkState(
-                tableDataFragments.containsKey(table.getTableId()),
-                "Uninitialized table [%s.%s]",
-                table.getSchemaName(),
-                table.getTableName());
-        Map<HostAddress, KiteDataFragment> dataFragments = tableDataFragments.get(table.getTableId());
-
-        for (Slice fragment : fragments) {
-            KiteDataFragment kiteDataFragment = KiteDataFragment.fromSlice(fragment);
-            log.info("update rows on hosts " + kiteDataFragment.getHostAddress().toString());
-            dataFragments.merge(kiteDataFragment.getHostAddress(), kiteDataFragment, KiteDataFragment::merge);
-        }
-    }
-    */
-
     @Override
     public synchronized List<ConnectorTableLayoutResult> getTableLayouts(
             ConnectorSession session,
@@ -341,55 +316,15 @@ public class KiteMetadata
             Constraint<ColumnHandle> constraint,
             Optional<Set<ColumnHandle>> desiredColumns)
     {
-        log.info("session " + session.toString());
         requireNonNull(handle, "handle is null");
         checkArgument(handle instanceof KiteTableHandle);
         KiteTableHandle kiteTableHandle = (KiteTableHandle) handle;
         Optional<List<ColumnHandle>> reqColumns = Optional.empty();
 
-        if (desiredColumns.isPresent()) {
-            reqColumns = Optional.of(new ArrayList<>(desiredColumns.get()));
-            Set<ColumnHandle> colhnds = desiredColumns.get();
-            for (ColumnHandle col : colhnds) {
-                log.info(col.toString());
-            }
-        }
-        else {
-            log.info("desired column empty");
-        }
-
         KitePredicatesExtractor extractor = new KitePredicatesExtractor(kiteTableHandle.getColumnHandles(), constraint.getSummary());
-
         TupleDomain<ColumnHandle> unenforcedConstraints = extractor.getUnenforcedConstraints();
         String whereClause = extractor.getClusteringKeyPredicates();
-
-        log.info("PREDICATE... " + whereClause);
-
         KiteTableLayoutHandle layoutHandle = new KiteTableLayoutHandle(kiteTableHandle, whereClause);
-
-        TupleDomain<ColumnHandle> predicates = constraint.getSummary();
-        List<KiteColumnHandle> schema = kiteTableHandle.getColumnHandles();
-        for (KiteColumnHandle c : schema) {
-            Domain domain = predicates.getDomains().get().get(c);
-            if (domain == null) {
-                continue;
-            }
-            if (domain.isNullAllowed()) {
-                continue;
-            }
-
-            String predicateString = null;
-            predicateString = domain.getValues().getValuesProcessor().transform(
-                ranges -> {
-                    return null;
-                },
-                discreteValues -> {
-                    return null;
-                },
-                allOrNone -> null);
-
-            log.info(c.toString() + " filter=" + domain.toString(session.getSqlFunctionProperties()));
-        }
 
         return ImmutableList.of(new ConnectorTableLayoutResult(getTableLayout(session, layoutHandle), unenforcedConstraints));
     }
