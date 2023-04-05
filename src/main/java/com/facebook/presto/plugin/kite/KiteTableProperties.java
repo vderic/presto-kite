@@ -34,6 +34,7 @@ public class KiteTableProperties
     public static final String CSV_SEPARATOR = "csv_separator";
     public static final String CSV_QUOTE = "csv_quote";
     public static final String CSV_ESCAPE = "csv_escape";
+    public static final String CSV_HEADER = "csv_header";
 
     private final List<PropertyMetadata<?>> tableProperties;
 
@@ -45,6 +46,7 @@ public class KiteTableProperties
                 stringProperty(LOCATION_PROPERTY, "kite://host/path", null, false),
                 stringProperty(CSV_SEPARATOR, "CSV separator character", null, false),
                 stringProperty(CSV_QUOTE, "CSV quote character", null, false),
+                stringProperty(CSV_HEADER, "CSV header boolean", null, false),
                 stringProperty(CSV_ESCAPE, "CSV escape character", null, false));
     }
 
@@ -63,19 +65,24 @@ public class KiteTableProperties
         return (String) tableProperties.get(STORAGE_FORMAT_PROPERTY);
     }
 
-    public static String getCsvSeparator(Map<String, Object> tableProperties)
+    public static char getCsvSeparator(Map<String, Object> tableProperties)
     {
-        return (String) tableProperties.get(CSV_SEPARATOR);
+        return ((String) tableProperties.getOrDefault(CSV_SEPARATOR, ",")).charAt(0);
     }
 
-    public static String getCsvQuote(Map<String, Object> tableProperties)
+    public static char getCsvQuote(Map<String, Object> tableProperties)
     {
-        return (String) tableProperties.get(CSV_QUOTE);
+        return ((String) tableProperties.getOrDefault(CSV_QUOTE, "\"")).charAt(0);
     }
 
-    public static String getCsvEscape(Map<String, Object> tableProperties)
+    public static char getCsvEscape(Map<String, Object> tableProperties)
     {
-        return (String) tableProperties.get(CSV_ESCAPE);
+        return ((String) tableProperties.getOrDefault(CSV_ESCAPE, "\"")).charAt(0);
+    }
+
+    public static boolean getCsvHeader(Map<String, Object> tableProperties)
+    {
+        return ((String) tableProperties.getOrDefault(CSV_HEADER, "false")).equalsIgnoreCase("true");
     }
 
     public static void show(Map<String, Object> tableProperties)

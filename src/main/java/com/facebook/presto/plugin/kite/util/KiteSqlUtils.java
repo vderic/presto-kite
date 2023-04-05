@@ -20,6 +20,7 @@ import com.facebook.presto.common.type.DecimalType;
 import com.facebook.presto.common.type.Type;
 import com.facebook.presto.common.type.VarcharType;
 import com.facebook.presto.plugin.kite.KiteColumnHandle;
+import com.facebook.presto.plugin.kite.KiteTableProperties;
 import com.vitessedata.kite.sdk.CsvFileSpec;
 import com.vitessedata.kite.sdk.FileSpec;
 import com.vitessedata.kite.sdk.ParquetFileSpec;
@@ -277,7 +278,11 @@ public final class KiteSqlUtils
     {
         String format = (String) properties.get("format");
         if (format.equalsIgnoreCase("csv")) {
-            return new CsvFileSpec();
+            char quote = KiteTableProperties.getCsvQuote(properties);
+            char escape = KiteTableProperties.getCsvEscape(properties);
+            char sep = KiteTableProperties.getCsvSeparator(properties);
+            boolean header = KiteTableProperties.getCsvHeader(properties);
+            return new CsvFileSpec().quote(quote).escape(escape).delim(sep).header_line(header);
         }
         else if (format.equalsIgnoreCase("parquet")) {
             return new ParquetFileSpec();
