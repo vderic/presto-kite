@@ -391,7 +391,9 @@ public class KiteMetadata
             log.info(c.toString() + " filter=" + domain.toString(session.getSqlFunctionProperties()));
         }
 
-        return ImmutableList.of(new ConnectorTableLayoutResult(getTableLayout(session, layoutHandle), unenforcedConstraints));
+        /* TODO: there is a bug in Kite not filtering out necessary rows so presto needs to redo all filtering */
+        //return ImmutableList.of(new ConnectorTableLayoutResult(getTableLayout(session, layoutHandle), unenforcedConstraints));
+        return ImmutableList.of(new ConnectorTableLayoutResult(getTableLayout(session, layoutHandle), constraint.getSummary()));
     }
 
     @Override
