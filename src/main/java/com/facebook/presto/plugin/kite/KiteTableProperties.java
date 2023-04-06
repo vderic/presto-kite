@@ -35,6 +35,7 @@ public class KiteTableProperties
     public static final String CSV_QUOTE = "csv_quote";
     public static final String CSV_ESCAPE = "csv_escape";
     public static final String CSV_HEADER = "csv_header";
+    public static final String CSV_NULL_STRING = "csv_nullstr";
 
     private final List<PropertyMetadata<?>> tableProperties;
 
@@ -47,7 +48,8 @@ public class KiteTableProperties
                 stringProperty(CSV_SEPARATOR, "CSV separator character", null, false),
                 stringProperty(CSV_QUOTE, "CSV quote character", null, false),
                 stringProperty(CSV_HEADER, "CSV header boolean", null, false),
-                stringProperty(CSV_ESCAPE, "CSV escape character", null, false));
+                stringProperty(CSV_ESCAPE, "CSV escape character", null, false),
+                stringProperty(CSV_NULL_STRING, "CSV NULL string", null, false));
     }
 
     public List<PropertyMetadata<?>> getTableProperties()
@@ -83,6 +85,11 @@ public class KiteTableProperties
     public static boolean getCsvHeader(Map<String, Object> tableProperties)
     {
         return ((String) tableProperties.getOrDefault(CSV_HEADER, "false")).equalsIgnoreCase("true");
+    }
+
+    public static String getCsvNullString(Map<String, Object> tableProperties)
+    {
+        return (String) tableProperties.getOrDefault(CSV_NULL_STRING, "");
     }
 
     public static void show(Map<String, Object> tableProperties)

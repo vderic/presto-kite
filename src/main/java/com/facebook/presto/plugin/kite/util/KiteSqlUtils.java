@@ -282,7 +282,8 @@ public final class KiteSqlUtils
             char escape = KiteTableProperties.getCsvEscape(properties);
             char sep = KiteTableProperties.getCsvSeparator(properties);
             boolean header = KiteTableProperties.getCsvHeader(properties);
-            return new CsvFileSpec().quote(quote).escape(escape).delim(sep).header_line(header);
+            String nullstr = KiteTableProperties.getCsvNullString(properties);
+            return new CsvFileSpec().quote(quote).escape(escape).delim(sep).header_line(header).nullstr(nullstr);
         }
         else if (format.equalsIgnoreCase("parquet")) {
             return new ParquetFileSpec();
