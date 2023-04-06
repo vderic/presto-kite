@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.facebook.presto</groupId>
         <artifactId>presto-root</artifactId>
-        <version>0.281-SNAPSHOT</version>
+        <version>0.280</version>
     </parent>
 
     <artifactId>presto-kite</artifactId>
@@ -13,7 +13,7 @@
     <packaging>presto-plugin</packaging>
 
     <properties>
-        <air.main.basedir>${project.parent.basedir}</air.main.basedir>
+        <air.main.basedir>${project.basedir}</air.main.basedir>
     </properties>
 
     <dependencies>
