@@ -61,11 +61,11 @@ You can specify the CREATE TABLE SQL with `WITH NO DATA`.
 |---------------|-------------|
 | format        | csv or parquet |
 | location      | kite URL with format kite://host1:port1,host2:port2,...,hostN:portN/path |
-| csv_header    | true or false |
-| csv_quote     | csv quote character |
-| csv_escape    | csv escape character |
-| csv_separator | csv separator character |
-| csv_nullstr   | csv NULL string |
+| csv_header    | true or false (default false)|
+| csv_quote     | csv quote character (default '"') |
+| csv_escape    | csv escape character (default '"')|
+| csv_separator | csv separator character (default ',')|
+| csv_nullstr   | csv NULL string (default '')|
 
 
 To create table,
