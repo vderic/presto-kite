@@ -55,7 +55,7 @@ Query Kite Tables
 ==============
 
 Since Kite supports READ ONLY operation, data will be ignored with CREATE TABLE SQL `CREATE TABLE NEWFOO AS SELECT * FROM FOO`.  
-You can specify the CREATE TABLE SQL with `WITH NO DATA`.
+You can create table without data by the SQL `CREATE TABLE NEWFOO AS SELECT * FROM FOO WITH NO DATA`.
 
 ## Table Options
 
