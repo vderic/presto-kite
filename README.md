@@ -60,7 +60,7 @@ You can specify the CREATE TABLE SQL with `WITH NO DATA`.
 | Property Name | Description |
 |---------------|-------------|
 | format        | csv or parquet |
-| location      | kite URL with format kite://host:port/path |
+| location      | kite URL with format kite://host1:port1,host2:port2,...,hostN:portN/path |
 | csv_header    | true or false |
 | csv_quote     | csv quote character |
 | csv_escape    | csv escape character |
