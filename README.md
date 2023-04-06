@@ -7,10 +7,22 @@ Data in kite will keep the same.
 Compilation
 ==============
 
+1. Compile kite-client-sdk and install to Maven
+
+```
+% git clone git@github.com:vderic/kite-client-sdk.git
+cd kite-client-sdk/java
+mvn clean install
+```
+
+2. Compile kite connector
+
 ```
 % cd presto-kite
 % ./mvnw clean package -DskipTests
 ```
+
+3. Unzip kite connector zip file `presto-kite/target/kite-VERSION.zip` and copy all jar files to `$PRESTO_HOME/plugin/kite` directory
 
 Configuration
 ==============
@@ -33,18 +45,15 @@ Configuration Properties
 
 The following configuration properties is available:
 
-|---------------|-------------|
 | Property Name | Description |
 |---------------|--------------|
 | kite.splits-per-node | The number of split per node |
------------------------|------------------------------|
 
 Query Kite Tables
 ==============
 
-Table Options
+## Table Options
 
-|---------------|-----------------|
 | Property Name | Description |
 |---------------|-------------|
 | format        | csv or parquet |
@@ -54,7 +63,6 @@ Table Options
 | csv_escape    | csv escape character |
 | csv_separator | csv separator character |
 | csv_nullstr   | csv NULL string |
-|---------------|-----------------|
 
 
 ```
