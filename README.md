@@ -2,12 +2,14 @@ Kite Connector
 ==============
 
 The Kite connector aloows querying data stored in Kite.  The schema and table created in Presto is in memory only and will be removed after system restart.
-Data in kite will keep the same. Kite is a READ ONLY connector. INSERT, UPDATE, DELETE is not supported.
+Data in kite will keep the same after system reboot. Since Kite is a READ ONLY connector, INSERT, UPDATE, DELETE is not supported.
 
 Compilation
 ==============
 
-1. Compile kite-client-sdk and install to Maven
+1. Install Java 11, Maven
+
+2. Compile kite-client-sdk and install to Maven
 
 ```
 % git clone git@github.com:vderic/kite-client-sdk.git
@@ -15,14 +17,14 @@ Compilation
 % mvn clean install
 ```
 
-2. Compile kite connector
+3. Compile kite connector
 
 ```
 % cd presto-kite
 % ./mvnw clean package -DskipTests
 ```
 
-3. Unzip kite connector zip file `presto-kite/target/presto-kite-VERSION.zip` and copy all jar files to `$PRESTO_HOME/plugin/kite` directory
+4. Unzip kite connector zip file `presto-kite/target/presto-kite-VERSION.zip` and copy all jar files to `$PRESTO_HOME/plugin/kite` directory
 
 Configuration
 ==============
