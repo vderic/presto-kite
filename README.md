@@ -11,8 +11,8 @@ Compilation
 
 ```
 % git clone git@github.com:vderic/kite-client-sdk.git
-cd kite-client-sdk/java
-mvn clean install
+% cd kite-client-sdk/java
+% mvn clean install
 ```
 
 2. Compile kite connector
@@ -22,7 +22,7 @@ mvn clean install
 % ./mvnw clean package -DskipTests
 ```
 
-3. Unzip kite connector zip file `presto-kite/target/kite-VERSION.zip` and copy all jar files to `$PRESTO_HOME/plugin/kite` directory
+3. Unzip kite connector zip file `presto-kite/target/presto-kite-VERSION.zip` and copy all jar files to `$PRESTO_HOME/plugin/kite` directory
 
 Configuration
 ==============
@@ -37,7 +37,7 @@ kite.splits-per-node=3
 Multiple Kite Clusters
 ==============
 
-You can have as many catalogs as you need, so if you have additional Kite clusters, simply add another propoerties file to etc/catalog with a different name (making sure it ends in .properties).
+You can have as many catalogs as you need, so if you have additional Kite clusters, simply add another propoerties file to `etc/catalog` with a different name (making sure it ends in .properties).
 For example, if you name the property file dev.properties, Presto will create a catalog named dev using configured connector.
 
 Configuration Properties
