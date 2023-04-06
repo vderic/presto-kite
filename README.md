@@ -1,7 +1,7 @@
 Kite Connector
 ==============
 
-The Kite connector aloows querying data stored in Kite.  The schema and table created in Presto is in memory only and will be removed after system restart.
+The Kite connector is a READONLY connector that allows querying data stored in Kite.  The schema and table created in Presto is in memory only and will be removed after system restart.
 Data in kite will keep the same after system reboot. Since Kite is a READ ONLY connector, INSERT, UPDATE, DELETE is not supported.
 
 Compilation
