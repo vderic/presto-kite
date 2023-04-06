@@ -2,7 +2,7 @@ Kite Connector
 ==============
 
 The Kite connector aloows querying data stored in Kite.  The schema and table created in Presto is in memory only and will be removed after system restart.
-Data in kite will keep the same.
+Data in kite will keep the same. Kite is a READ ONLY connector. INSERT, UPDATE, DELETE is not supported.
 
 Compilation
 ==============
@@ -52,6 +52,9 @@ The following configuration properties is available:
 Query Kite Tables
 ==============
 
+Since Kite supports READ ONLY operation, data will be ignored with CREATE TABLE SQL `CREATE TABLE NEWFOO AS SELECT * FROM FOO`.  
+You can specify the CREATE TABLE SQL with `WITH NO DATA`.
+
 ## Table Options
 
 | Property Name | Description |
@@ -64,6 +67,8 @@ Query Kite Tables
 | csv_separator | csv separator character |
 | csv_nullstr   | csv NULL string |
 
+
+To create table,
 
 ```
 presto> CREATE TABLE kite.default.lineitem ( L_ORDERKEY    BIGINT,
