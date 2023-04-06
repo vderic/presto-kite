@@ -31,7 +31,7 @@ public class KiteTableProperties
 
     public static final String STORAGE_FORMAT_PROPERTY = "format";
     public static final String LOCATION_PROPERTY = "location";
-    public static final String CSV_SEPARATOR = "csv_separator";
+    public static final String CSV_DELIM = "csv_delim";
     public static final String CSV_QUOTE = "csv_quote";
     public static final String CSV_ESCAPE = "csv_escape";
     public static final String CSV_HEADER = "csv_header";
@@ -45,7 +45,7 @@ public class KiteTableProperties
         tableProperties = ImmutableList.of(
                 stringProperty(STORAGE_FORMAT_PROPERTY, "Kite storager format for the table", null, false),
                 stringProperty(LOCATION_PROPERTY, "kite://host/path", null, false),
-                stringProperty(CSV_SEPARATOR, "CSV separator character", null, false),
+                stringProperty(CSV_DELIM, "CSV delimiter character", null, false),
                 stringProperty(CSV_QUOTE, "CSV quote character", null, false),
                 stringProperty(CSV_HEADER, "CSV header boolean", null, false),
                 stringProperty(CSV_ESCAPE, "CSV escape character", null, false),
@@ -67,9 +67,9 @@ public class KiteTableProperties
         return (String) tableProperties.get(STORAGE_FORMAT_PROPERTY);
     }
 
-    public static char getCsvSeparator(Map<String, Object> tableProperties)
+    public static char getCsvDelimiter(Map<String, Object> tableProperties)
     {
-        return ((String) tableProperties.getOrDefault(CSV_SEPARATOR, ",")).charAt(0);
+        return ((String) tableProperties.getOrDefault(CSV_DELIM, ",")).charAt(0);
     }
 
     public static char getCsvQuote(Map<String, Object> tableProperties)

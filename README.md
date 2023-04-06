@@ -59,15 +59,15 @@ You can create table without data by the SQL `CREATE TABLE NEWFOO AS SELECT * FR
 
 ## Table Options
 
-| Property Name | Description | Required |
+| Property Name | Description | Mandatory |
 |---------------|-------------|----------|
-| format        | csv or parquet | Required |
-| location      | kite URL with format kite://host1:port1,host2:port2,...,hostN:portN/path | Required |
-| csv_header    | true or false (default false)| Optional |
-| csv_quote     | csv quote character (default '"') | Optional |
-| csv_escape    | csv escape character (default '"')| Optional |
-| csv_separator | csv separator character (default ',')| Optional |
-| csv_nullstr   | csv NULL string (default '')| Optional |
+| format        | csv or parquet | True |
+| location      | kite URL with format kite://host1:port1,host2:port2,...,hostN:portN/path | True |
+| csv_header    | true or false (default false)| False |
+| csv_quote     | csv quote character (default '"') | False |
+| csv_escape    | csv escape character (default '"')| False |
+| csv_delim     | csv delimiter character (default ',')| False |
+| csv_nullstr   | csv NULL string (default '')| False |
 
 
 To create table,
