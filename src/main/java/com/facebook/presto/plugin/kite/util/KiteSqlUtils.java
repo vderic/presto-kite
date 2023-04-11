@@ -202,10 +202,10 @@ public final class KiteSqlUtils
             return "int64:0:0";
         }
         else if (type.equals(REAL)) {
-            return "fp32:0:0";
+            return "float:0:0";
         }
         else if (type.equals(DOUBLE)) {
-            return "fp64:0:0";
+            return "double:0:0";
         }
         else if (type.equals(DATE)) {
             return "date:0:0";
