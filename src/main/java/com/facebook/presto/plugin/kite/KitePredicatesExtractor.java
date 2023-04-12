@@ -13,11 +13,13 @@
  */
 package com.facebook.presto.plugin.kite;
 
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.common.predicate.Domain;
 import com.facebook.presto.common.predicate.Range;
 import com.facebook.presto.common.predicate.TupleDomain;
 import com.facebook.presto.plugin.kite.util.KiteSqlUtils;
 import com.facebook.presto.spi.ColumnHandle;
+import com.facebook.presto.spi.ConnectorSession;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -33,15 +35,19 @@ import static java.util.Objects.requireNonNull;
 
 public class KitePredicatesExtractor
 {
+    private static final Logger log = Logger.get(KitePredicatesExtractor.class);
+
     private final List<KiteColumnHandle> clusteringColumns;
     private final ClusteringPushDownResult clusteringPushDownResult;
     private final TupleDomain<ColumnHandle> predicates;
+    private final ConnectorSession session;
 
-    public KitePredicatesExtractor(List<KiteColumnHandle> clusteringColumns, TupleDomain<ColumnHandle> predicates)
+    public KitePredicatesExtractor(ConnectorSession session, List<KiteColumnHandle> clusteringColumns, TupleDomain<ColumnHandle> predicates)
     {
+        this.session = session;
         this.clusteringColumns = ImmutableList.copyOf(clusteringColumns);
         this.predicates = requireNonNull(predicates, "predicates is null");
-        this.clusteringPushDownResult = getClusteringKeysSet(clusteringColumns, predicates);
+        this.clusteringPushDownResult = getClusteringKeysSet(session, clusteringColumns, predicates);
     }
 
     public String getClusteringKeyPredicates()
@@ -61,7 +67,7 @@ public class KitePredicatesExtractor
         return TupleDomain.withColumnDomains(notPushedDown);
     }
 
-    private static ClusteringPushDownResult getClusteringKeysSet(List<KiteColumnHandle> clusteringColumns, TupleDomain<ColumnHandle> predicates)
+    private static ClusteringPushDownResult getClusteringKeysSet(ConnectorSession session, List<KiteColumnHandle> clusteringColumns, TupleDomain<ColumnHandle> predicates)
     {
         ImmutableMap.Builder<ColumnHandle, Domain> domainsBuilder = ImmutableMap.builder();
         ImmutableList.Builder<String> clusteringColumnSql = ImmutableList.builder();
@@ -81,8 +87,23 @@ public class KitePredicatesExtractor
                         List<String> rangeConjuncts = new ArrayList<>();
                         String predicate = null;
 
-                        // TODO: check NOT EQUALS.  presto gives (< and >) instead of !=
+                        if (ranges.getRangeCount() == 2) {
+                            // check !=
+                            List<Range> r = ranges.getOrderedRanges();
+                            Range r0 = r.get(0);
+                            Range r1 = r.get(1);
+                            if (r0.isLowUnbounded() && !r0.isHighUnbounded() && !r0.isHighInclusive() &&
+                                    !r1.isLowUnbounded() && r1.isHighUnbounded() && !r1.isLowInclusive() &&
+                                    r0.getHighBoundedValue().equals(r1.getLowBoundedValue())) {
+                                return format(
+                                        "%s != %s",
+                                        KiteSqlUtils.validColumnName(columnHandle.getName()),
+                                        KiteSqlUtils.sqlValue(toSQLCompatibleString(r0.getHighBoundedValue(), columnHandle.getColumnType()), columnHandle.getColumnType()));
+                            }
+                        }
+
                         for (Range range : ranges.getOrderedRanges()) {
+                            log.info(range.toString(session.getSqlFunctionProperties()));
                             if (range.isAll()) {
                                 return null;
                             }
@@ -91,6 +112,17 @@ public class KitePredicatesExtractor
                                         columnHandle.getColumnType()));
                             }
                             else {
+                                if (!range.isLowUnbounded() && !range.isHighUnbounded()) {
+                                    rangeConjuncts.add(format("(%s %s %s AND %s %s %s)",
+                                            KiteSqlUtils.validColumnName(columnHandle.getName()),
+                                            range.isLowInclusive() ? ">=" : ">",
+                                            KiteSqlUtils.sqlValue(toSQLCompatibleString(range.getLowBoundedValue(), columnHandle.getColumnType()), columnHandle.getColumnType()),
+                                            KiteSqlUtils.validColumnName(columnHandle.getName()),
+                                            range.isHighInclusive() ? "<=" : "<",
+                                            KiteSqlUtils.sqlValue(toSQLCompatibleString(range.getHighBoundedValue(), columnHandle.getColumnType()), columnHandle.getColumnType())));
+                                    continue;
+                                }
+
                                 if (!range.isLowUnbounded()) {
                                     rangeConjuncts.add(format(
                                             "%s %s %s",
@@ -121,7 +153,7 @@ public class KitePredicatesExtractor
                             }
                         }
                         else if (!rangeConjuncts.isEmpty()) {
-                            predicate = Joiner.on(" AND ").join(rangeConjuncts);
+                            predicate = "(" + Joiner.on(" OR ").join(rangeConjuncts) + ")";
                         }
                         return predicate;
                     }, discreteValues -> {

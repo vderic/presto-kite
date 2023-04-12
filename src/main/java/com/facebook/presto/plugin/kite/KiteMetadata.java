@@ -319,7 +319,7 @@ public class KiteMetadata
         KiteTableHandle kiteTableHandle = (KiteTableHandle) handle;
         Optional<List<ColumnHandle>> reqColumns = Optional.empty();
 
-        KitePredicatesExtractor extractor = new KitePredicatesExtractor(kiteTableHandle.getColumnHandles(), constraint.getSummary());
+        KitePredicatesExtractor extractor = new KitePredicatesExtractor(session, kiteTableHandle.getColumnHandles(), constraint.getSummary());
         TupleDomain<ColumnHandle> unenforcedConstraints = extractor.getUnenforcedConstraints();
         String whereClause = extractor.getClusteringKeyPredicates();
         KiteTableLayoutHandle layoutHandle = new KiteTableLayoutHandle(kiteTableHandle, whereClause);
