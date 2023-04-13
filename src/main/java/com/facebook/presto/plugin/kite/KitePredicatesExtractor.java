@@ -92,8 +92,8 @@ public class KitePredicatesExtractor
                             List<Range> r = ranges.getOrderedRanges();
                             Range r0 = r.get(0);
                             Range r1 = r.get(1);
-                            if (r0.isLowUnbounded() && !r0.isHighUnbounded() && !r0.isHighInclusive() &&
-                                    !r1.isLowUnbounded() && r1.isHighUnbounded() && !r1.isLowInclusive() &&
+                            if (!r0.isAll() && !r0.isSingleValue() && r0.isLowUnbounded() && !r0.isHighUnbounded() && !r0.isHighInclusive() &&
+                                    !r1.isAll() && !r1.isSingleValue() && !r1.isLowUnbounded() && r1.isHighUnbounded() && !r1.isLowInclusive() &&
                                     r0.getHighBoundedValue().equals(r1.getLowBoundedValue())) {
                                 return format(
                                         "%s != %s",
