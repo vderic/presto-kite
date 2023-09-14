@@ -15,8 +15,8 @@ package com.facebook.presto.plugin.kite;
 
 import com.facebook.airlift.log.Logger;
 import com.facebook.presto.common.block.BlockBuilder;
+import com.facebook.presto.common.type.DecimalType;
 import com.facebook.presto.common.type.Type;
-import com.facebook.presto.common.type.TypeUtils;
 import com.facebook.presto.spi.PrestoException;
 import com.facebook.presto.spi.RecordCursor;
 import com.vitessedata.kite.sdk.KiteConnection;
@@ -177,6 +177,67 @@ public class KiteRecordCursor
         }
     }
 
+    private void writeNativeValue(Type type, BlockBuilder blockBuilder, Object value)
+    {
+        if (value == null) {
+            blockBuilder.appendNull();
+        }
+        else if (type.getJavaType() == boolean.class) {
+            type.writeBoolean(blockBuilder, (Boolean) value);
+        }
+        else if (type.getJavaType() == long.class) {
+            if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long) {
+                type.writeLong(blockBuilder, ((Number) value).longValue());
+            }
+            else if (value instanceof BigInteger) {
+                type.writeLong(blockBuilder, ((BigInteger) value).longValueExact());
+            }
+            else if (value instanceof BigDecimal) {
+                BigDecimal v = (BigDecimal) value;
+                type.writeLong(blockBuilder, v.unscaledValue().longValueExact()); // return the unscale value. e.g. 0.110 (scale=3) => 110
+            }
+            else if (value instanceof Float) {
+                Float f = (Float) value;
+                type.writeLong(blockBuilder, Float.floatToRawIntBits(f.floatValue()));
+            }
+            else if (value instanceof Double) {
+                Double d = (Double) value;
+                type.writeLong(blockBuilder, Double.doubleToRawLongBits(d.doubleValue()));
+            }
+        }
+        else if (type.getJavaType() == double.class) {
+            if (value instanceof Float || value instanceof Double || value instanceof BigDecimal) {
+                type.writeDouble(blockBuilder, ((Number) value).doubleValue());
+            }
+        }
+        else if (type.getJavaType() == Slice.class) {
+            Slice slice;
+            if (value instanceof byte[]) {
+                slice = Slices.wrappedBuffer((byte[]) value);
+            }
+            else if (value instanceof String) {
+                slice = Slices.utf8Slice((String) value);
+            }
+            else if (value instanceof BigDecimal) {
+                if (type instanceof DecimalType) {
+                    // return 16 bytes
+                    BigDecimal dec = (BigDecimal) value;
+                    slice = Slices.wrappedBuffer(dec.toBigInteger().toByteArray());
+                }
+                else {
+                    throw new IllegalStateException("Slice expected DecimalType but " + value.getClass().getName() + " type = " + type.getDisplayName());
+                }
+            }
+            else {
+                throw new IllegalStateException("Slice expected byte[] or String but " + value.getClass().getName() + " type = " + type.getDisplayName());
+            }
+            type.writeSlice(blockBuilder, slice, 0, slice.length());
+        }
+        else {
+            type.writeObject(blockBuilder, value);
+        }
+    }
+
     @Override
     public Object getObject(int field)
     {
@@ -185,11 +246,10 @@ public class KiteRecordCursor
         if (value instanceof ArrayType && Types.isArrayType(type)) {
             ArrayType arr = (ArrayType) value;
             Object[] objs = arr.toArray();
-            //Type elementType = type.getTypeParameters().get(0);
             Type elementType = Types.getElementType(type);
-            BlockBuilder builder = type.createBlockBuilder(null, objs.length);
-            for (Object item : objs) {
-                TypeUtils.writeNativeValue(elementType, builder, item);
+            BlockBuilder builder = elementType.createBlockBuilder(null, objs.length);
+            for (int i = 0; i < objs.length; i++) {
+                writeNativeValue(elementType, builder, objs[i]);
             }
             return builder.build();
         }
