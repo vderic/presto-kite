@@ -21,6 +21,7 @@ import com.facebook.presto.common.type.Type;
 import com.facebook.presto.common.type.VarcharType;
 import com.facebook.presto.plugin.kite.KiteColumnHandle;
 import com.facebook.presto.plugin.kite.KiteTableProperties;
+import com.facebook.presto.plugin.kite.Types;
 import com.vitessedata.kite.sdk.CsvFileSpec;
 import com.vitessedata.kite.sdk.FileSpec;
 import com.vitessedata.kite.sdk.ParquetFileSpec;
@@ -184,55 +185,134 @@ public final class KiteSqlUtils
         return value.toString();
     }
 
-    private static String getKiteType(Type type)
+    private static String getKiteType(Type type, boolean isarray)
     {
         if (type.equals(BOOLEAN)) {
-            return "int8:0:0";
+            if (isarray) {
+                return "int8[]:0:0";
+            }
+            else {
+                return "int8:0:0";
+            }
         }
         else if (type.equals(TINYINT)) {
-            return "int8:0:0";
+            if (isarray) {
+                return "int8[]:0:0";
+            }
+            else {
+                return "int8:0:0";
+            }
         }
         else if (type.equals(SMALLINT)) {
-            return "int16:0:0";
+            if (isarray) {
+                return "int16[]:0:0";
+            }
+            else {
+                return "int16:0:0";
+            }
         }
         else if (type.equals(INTEGER)) {
-            return "int32:0:0";
+            if (isarray) {
+                return "int32[]:0:0";
+            }
+            else {
+                return "int32:0:0";
+            }
         }
         else if (type.equals(BIGINT)) {
-            return "int64:0:0";
+            if (isarray) {
+                return "int64[]:0:0";
+            }
+            else {
+                return "int64:0:0";
+            }
         }
         else if (type.equals(REAL)) {
-            return "float:0:0";
+            if (isarray) {
+                return "float[]:0:0";
+            }
+            else {
+                return "float:0:0";
+            }
         }
         else if (type.equals(DOUBLE)) {
-            return "double:0:0";
+            if (isarray) {
+                return "double[]:0:0";
+            }
+            else {
+                return "double:0:0";
+            }
         }
         else if (type.equals(DATE)) {
-            return "date:0:0";
+            if (isarray) {
+                return "date[]:0:0";
+            }
+            else {
+                return "date:0:0";
+            }
         }
         else if (type.equals(TIME) || type.equals(TIME_WITH_TIME_ZONE)) {
-            return "time:0:0";
+            if (isarray) {
+                return "time[]:0:0";
+            }
+            else {
+                return "time:0:0";
+            }
         }
         else if (type.equals(TIMESTAMP) || type.equals(TIMESTAMP_WITH_TIME_ZONE)) {
-            return "timestamp:0:0";
+            if (isarray) {
+                return "timestamp[]:0:0";
+            }
+            else {
+                return "timestamp:0:0";
+            }
         }
         else if (type.equals(TIMESTAMP_MICROSECONDS)) {
-            return "timestamp:0:0";
+            if (isarray) {
+                return "timestamp[]:0:0";
+            }
+            else {
+                return "timestamp:0:0";
+            }
         }
         else if (type instanceof DecimalType) {
             DecimalType dec = (DecimalType) type;
             int precision = dec.getPrecision();
             int scale = dec.getScale();
-            return "decimal:" + precision + ":" + scale;
+            if (isarray) {
+                return "decimal[]:" + precision + ":" + scale;
+            }
+            else {
+                return "decimal:" + precision + ":" + scale;
+            }
         }
         else if (type instanceof CharType || type instanceof VarcharType) {
-            return "string:0:0";
+            if (isarray) {
+                return "string[]:0:0";
+            }
+            else {
+                return "string:0:0";
+            }
         }
         else if (type.equals(VARCHAR)) {
-            return "string:0:0";
+            if (isarray) {
+                return "string[]:0:0";
+            }
+            else {
+                return "string:0:0";
+            }
         }
         else if (type.equals(VARBINARY)) {
-            return "bytea:0:0";
+            if (isarray) {
+                return "bytea[]:0:0";
+            }
+            else {
+                return "bytea:0:0";
+            }
+        }
+        else if (Types.isArrayType(type)) {
+            Type elementType = Types.getElementType(type);
+            return getKiteType(elementType, true);
         }
         else {
             throw new NotSupportedException("type not supported in Kite. " + type.getClass().getName());
@@ -250,7 +330,7 @@ public final class KiteSqlUtils
             int scale = 0;
             sb.append(cname);
             sb.append(':');
-            sb.append(getKiteType(type));
+            sb.append(getKiteType(type, false));
             sb.append('\n');
         }
 

@@ -14,10 +14,13 @@
 package com.facebook.presto.plugin.kite;
 
 import com.facebook.airlift.log.Logger;
+import com.facebook.presto.common.block.BlockBuilder;
 import com.facebook.presto.common.type.Type;
+import com.facebook.presto.common.type.TypeUtils;
 import com.facebook.presto.spi.PrestoException;
 import com.facebook.presto.spi.RecordCursor;
 import com.vitessedata.kite.sdk.KiteConnection;
+import com.vitessedata.xrg.format.ArrayType;
 import com.vitessedata.xrg.format.XrgIterator;
 import io.airlift.slice.Slice;
 import io.airlift.slice.Slices;
@@ -177,7 +180,22 @@ public class KiteRecordCursor
     @Override
     public Object getObject(int field)
     {
-        throw new UnsupportedOperationException();
+        Type type = getType(field);
+        Object value = values[field];
+        if (value instanceof ArrayType && Types.isArrayType(type)) {
+            ArrayType arr = (ArrayType) value;
+            Object[] objs = arr.toArray();
+            //Type elementType = type.getTypeParameters().get(0);
+            Type elementType = Types.getElementType(type);
+            BlockBuilder builder = type.createBlockBuilder(null, objs.length);
+            for (Object item : objs) {
+                TypeUtils.writeNativeValue(elementType, builder, item);
+            }
+            return builder.build();
+        }
+        else {
+            throw new IllegalStateException("Expected ArrayType but " + values[field].getClass().getName());
+        }
     }
 
     @Override
