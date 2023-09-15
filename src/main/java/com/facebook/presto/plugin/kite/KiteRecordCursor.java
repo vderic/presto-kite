@@ -34,6 +34,8 @@ import static com.facebook.presto.common.type.BigintType.BIGINT;
 import static com.facebook.presto.common.type.DoubleType.DOUBLE;
 */
 import static com.facebook.presto.common.type.BooleanType.BOOLEAN;
+import static com.facebook.presto.common.type.TimeType.TIME;
+import static com.facebook.presto.common.type.TimestampType.TIMESTAMP;
 import static com.facebook.presto.spi.StandardErrorCode.REMOTE_HOST_GONE;
 import static com.facebook.presto.spi.StandardErrorCode.REMOTE_TASK_ERROR;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -125,9 +127,14 @@ public class KiteRecordCursor
     @Override
     public long getLong(int field)
     {
+        Type type = getType(field);
         Object value = values[field];
         if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long) {
-            return ((Number) value).longValue();
+            long v = ((Number) value).longValue();
+            if (type.equals(TIMESTAMP) || type.equals(TIME)) {
+                v /= 1000;
+            }
+            return v;
         }
         else if (value instanceof BigInteger) {
             return ((BigInteger) value).longValueExact();
@@ -186,7 +193,11 @@ public class KiteRecordCursor
         }
         else if (type.getJavaType() == long.class) {
             if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long) {
-                type.writeLong(blockBuilder, ((Number) value).longValue());
+                long v = ((Number) value).longValue();
+                if (type.equals(TIMESTAMP) || type.equals(TIME)) {
+                    v /= 1000;
+                }
+                type.writeLong(blockBuilder, v);
             }
             else if (value instanceof BigInteger) {
                 type.writeLong(blockBuilder, ((BigInteger) value).longValueExact());
