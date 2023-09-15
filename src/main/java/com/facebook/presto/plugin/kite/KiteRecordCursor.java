@@ -15,7 +15,6 @@ package com.facebook.presto.plugin.kite;
 
 import com.facebook.airlift.log.Logger;
 import com.facebook.presto.common.block.BlockBuilder;
-import com.facebook.presto.common.type.DecimalType;
 import com.facebook.presto.common.type.Type;
 import com.facebook.presto.spi.PrestoException;
 import com.facebook.presto.spi.RecordCursor;
@@ -217,16 +216,6 @@ public class KiteRecordCursor
             }
             else if (value instanceof String) {
                 slice = Slices.utf8Slice((String) value);
-            }
-            else if (value instanceof BigDecimal) {
-                if (type instanceof DecimalType) {
-                    // return 16 bytes
-                    BigDecimal dec = (BigDecimal) value;
-                    slice = Slices.wrappedBuffer(dec.toBigInteger().toByteArray());
-                }
-                else {
-                    throw new IllegalStateException("Slice expected DecimalType but " + value.getClass().getName() + " type = " + type.getDisplayName());
-                }
             }
             else {
                 throw new IllegalStateException("Slice expected byte[] or String but " + value.getClass().getName() + " type = " + type.getDisplayName());
