@@ -25,5 +25,5 @@ timeav array(time),
 timestampav array(timestamp),
 dec64av array(decimal(16,4)),
 dec128av array(decimal(25,4)))
-WITH (format='parquet', LOCATION='kite://localhost:7878/test_presto/presto*.parquet');
+WITH (format='parquet', LOCATION='kite://localhost:7878/presto/presto*.parquet');
 
